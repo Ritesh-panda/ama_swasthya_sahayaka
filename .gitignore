@@ -1,0 +1,16 @@
+# Virtual Environment & Cache
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables - DO NOT COMMIT
+.env
+
+# IDE specific folders
+.vscode/
+.idea/
+
+# Database or seed data
+*.db
+*.sqlite
+secrets/

@@ -1,0 +1,28 @@
+# Web Framework
+fastapi
+uvicorn[standard]
+
+# Database ORM and Driver
+sqlalchemy
+psycopg2-binary
+geoalchemy2
+alembic
+
+# Asynchronous Task Queue & Broker
+celery
+redis
+
+# AI & Cloud Services
+google-generativeai
+google-cloud-speech
+google-cloud-texttospeech
+twilio
+google-cloud-aiplatform
+# Configuration & Data Validation
+pydantic
+python-dotenv
+pydantic-settings
+python-multipart
+newsapi-python
+
+
