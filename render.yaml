@@ -1,3 +1,9 @@
+databases:
+  - name: jeevanrekha-db
+    plan: free
+    databaseName: jeevanrekha
+    user: jeevanrekha_admin
+
 services:
   - type: web
     name: jeevanrekha-backend
@@ -7,7 +13,9 @@ services:
     dockerfilePath: ./Dockerfile
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: jeevanrekha-db
+          property: connectionString
       - key: GEMINI_API_KEY
         sync: false
       - key: GOOGLE_API_KEY
