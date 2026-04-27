@@ -1,67 +1,125 @@
 # File: app/services/maps_service.py
 
 import requests
-import json
+import logging
 from app.core.config import settings
 
-def find_nearby_hospitals(latitude: float, longitude: float):
-    """
-    Finds nearby hospitals and then gets detailed contact info for each one.
-    """
-    search_url = "https://places.googleapis.com/v1/places:searchNearby"
-    details_url = "https://places.googleapis.com/v1/places/"
+logger = logging.getLogger(__name__)
 
-    # --- Step 1: Nearby Search to get Place IDs ---
-    search_payload = {
+def find_nearby_hospitals(latitude: float, longitude: float, radius: int = 5000):
+    """
+    Finds nearby hospitals using Google Places API (New).
+    Falls back to OpenStreetMap if API key is missing or fails.
+    """
+    if settings.GOOGLE_MAPS_API_KEY and settings.GOOGLE_MAPS_API_KEY != "YOUR_MAPS_API_KEY_HERE":
+        return _find_via_google(latitude, longitude, radius)
+    else:
+        logger.warning("No Google Maps key found. Using OpenStreetMap fallback.")
+        return _find_via_osm(latitude, longitude, radius)
+
+
+def _find_via_google(latitude: float, longitude: float, radius: int):
+    """Google Places API (New) — Nearby Search"""
+    url = "https://places.googleapis.com/v1/places:searchNearby"
+    
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": settings.GOOGLE_MAPS_API_KEY,
+        "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.nationalPhoneNumber,places.rating,places.googleMapsUri,places.currentOpeningHours"
+    }
+    
+    body = {
         "includedTypes": ["hospital"],
-        "maxResultCount": 3, # Let's get the top 3
+        "maxResultCount": 5,
         "locationRestriction": {
-            "circle": { "center": { "latitude": latitude, "longitude": longitude }, "radius": 10000.0 } # 10km radius
+            "circle": {
+                "center": {
+                    "latitude": latitude,
+                    "longitude": longitude
+                },
+                "radius": float(radius)
+            }
         }
     }
-    search_headers = {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': settings.GOOGLE_MAPS_API_KEY,
-        'X-Goog-FieldMask': 'places.id,places.displayName' # We only need the ID and name initially
-    }
-
+    
     try:
-        response = requests.post(search_url, data=json.dumps(search_payload), headers=search_headers)
+        response = requests.post(url, headers=headers, json=body, timeout=10)
         response.raise_for_status()
-
-        places = response.json().get('places', [])
+        data = response.json()
+        places = data.get("places", [])
+        
         if not places:
-            return "I couldn't find any hospitals within 10km of your location."
-
-        # --- Step 2: Get Details for Each Place ---
-        reply = "Here are the nearest hospitals I found on Google Maps:\n\n"
-
+            logger.warning("Google Places returned no results. Trying OSM fallback.")
+            return _find_via_osm(latitude, longitude, radius)
+        
+        reply = "🏥 *Nearby Hospitals (Google Maps):*\n\n"
+        
         for place in places:
-            place_id = place.get('id')
-            place_name = place.get('displayName', {}).get('text', 'N/A')
-
-            # Make a new request for details for this specific place
-            details_headers = {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': settings.GOOGLE_MAPS_API_KEY,
-                'X-Goog-FieldMask': 'formattedAddress,nationalPhoneNumber,websiteUri'
-            }
-            details_response = requests.get(f"{details_url}{place_id}", headers=details_headers)
-            details_data = details_response.json()
-
-            address = details_data.get('formattedAddress', 'Address not available')
-            phone = details_data.get('nationalPhoneNumber', 'Phone not available')
-            website = details_data.get('websiteUri', '')
-
-            reply += f"🏥 *{place_name}*\n"
-            reply += f"_{address}_\n"
-            reply += f"📞 Phone: {phone}\n"
-            if website:
-                reply += f"🌐 Website: {website}\n"
+            name = place.get("displayName", {}).get("text", "Unknown Hospital")
+            address = place.get("formattedAddress", "Address not available")
+            phone = place.get("nationalPhoneNumber", "Phone not available")
+            rating = place.get("rating", None)
+            maps_link = place.get("googleMapsUri", "")
+            is_open = place.get("currentOpeningHours", {}).get("openNow", None)
+            
+            open_status = ""
+            if is_open is True:
+                open_status = "🟢 Open Now"
+            elif is_open is False:
+                open_status = "🔴 Currently Closed"
+            
+            reply += f"🏥 *{name}*\n"
+            reply += f"📍 _{address}_\n"
+            reply += f"📞 {phone}\n"
+            if rating:
+                reply += f"⭐ Rating: {rating}/5\n"
+            if open_status:
+                reply += f"{open_status}\n"
+            if maps_link:
+                reply += f"🗺️ {maps_link}\n"
             reply += "\n"
+        
+        reply += "_Powered by Google Maps_ 🗺️"
+        logger.info(f"--- ✅ Google Places found {len(places)} hospitals ---")
+        return reply
+
+    except Exception as e:
+        logger.error(f"Google Places API Error: {e}. Falling back to OSM.")
+        return _find_via_osm(latitude, longitude, radius)
+
+
+def _find_via_osm(latitude: float, longitude: float, radius: int):
+    """OpenStreetMap Overpass API — Free fallback"""
+    overpass_url = "https://overpass-api.de/api/interpreter"
+    query = f"""
+    [out:json];
+    (
+      node["amenity"="hospital"](around:{radius},{latitude},{longitude});
+      way["amenity"="hospital"](around:{radius},{latitude},{longitude});
+    );
+    out center;
+    """
+    try:
+        response = requests.get(overpass_url, params={'data': query}, timeout=15)
+        response.raise_for_status()
+        elements = response.json().get('elements', [])
+
+        if not elements:
+            return "⚠️ No hospitals found within 5km of your location. Try calling *108* for emergency assistance."
+
+        reply = "🏥 *Nearby Hospitals (OpenStreetMap):*\n\n"
+        for element in elements[:4]:
+            tags = element.get('tags', {})
+            name = tags.get('name', 'Unnamed Hospital')
+            address = tags.get('addr:full') or f"{tags.get('addr:street', '')} {tags.get('addr:city', '')}".strip() or "Address info not available"
+            phone = tags.get('phone') or tags.get('contact:phone') or "Phone not available"
+            
+            reply += f"🏥 *{name}*\n"
+            reply += f"📍 _{address}_\n"
+            reply += f"📞 {phone}\n\n"
 
         return reply
 
     except Exception as e:
-        print(f"--- Google Maps API Error: {e} ---")
-        return "Sorry, I'm having trouble searching for hospitals right now."
+        logger.error(f"OSM Fallback Error: {e}")
+        return "⚠️ Hospital search is temporarily unavailable. Please call *108* for emergency help."

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>How It Works — JeevanRekha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .step-list { display:flex; flex-direction:column; gap:2px; background:var(--line); border-radius:24px; overflow:hidden; margin-top:4rem; }
+    .step-item { background:#fff; display:grid; grid-template-columns:80px 1fr auto; align-items:center; gap:2rem; padding:2.5rem 3rem; transition:background .2s; }
+    .step-item:hover { background:#fafafa; }
+    .step-num { font-size:3.5rem; font-weight:900; color:#f0f0f5; letter-spacing:-.03em; }
+    .step-icon-big { font-size:2.5rem; }
+    .step-content h3 { font-size:1.25rem; font-weight:700; margin-bottom:.35rem; }
+    .step-content p { font-size:.92rem; color:var(--muted); line-height:1.65; }
+    .step-tags { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.75rem; }
+    .step-tag { padding:.2rem .6rem; border-radius:6px; font-size:.72rem; font-weight:600; background:var(--cream); color:var(--muted); }
+
+    .channel-compare { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:4rem; }
+    .cc-card { border-radius:20px; padding:2.5rem; }
+    .cc-wp { background:var(--ink); }
+    .cc-voice { background:var(--cream); border:1px solid var(--line); }
+    .cc-title { font-size:1.1rem; font-weight:700; margin-bottom:1.5rem; }
+    .cc-wp .cc-title { color:#fff; }
+    .cc-steps { list-style:none; display:flex; flex-direction:column; gap:.85rem; }
+    .cc-step { display:flex; align-items:flex-start; gap:.75rem; }
+    .cc-step-num { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:800; flex-shrink:0; margin-top:2px; }
+    .cc-wp .cc-step-num { background:rgba(255,255,255,.15); color:rgba(255,255,255,.7); }
+    .cc-voice .cc-step-num { background:rgba(99,102,241,.12); color:var(--indigo); }
+    .cc-step-text { font-size:.88rem; line-height:1.55; }
+    .cc-wp .cc-step-text { color:rgba(255,255,255,.7); }
+    .cc-voice .cc-step-text { color:var(--muted); }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🩺 JeevanRekha</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="experience.html">Experience</a></li>
+      <li><a href="works.html">How It Works</a></li>
+      <li><a href="tech.html">Technology</a></li>
+      <li><a href="impact.html">Impact</a></li>
+    </ul>
+    <div class="nav-ctas">
+      <a href="http://localhost:5173" target="_blank" class="nav-pill nav-pill-outline">🎙️ Voice App</a>
+      <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="nav-pill nav-pill-fill">💬 WhatsApp</a>
+    </div>
+  </div>
+</nav>
+
+<section style="padding:140px 2rem 60px;text-align:center;background:#fff">
+  <div class="container reveal">
+    <span class="eyebrow">How It Works</span>
+    <h1 class="headline-xl" style="margin-bottom:1.25rem">From message to<br/><span class="grad-text">life-saving guidance.</span></h1>
+    <p class="body-lg" style="max-width:500px;margin:0 auto">Five steps. Under 3 seconds. In your language.</p>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="container">
+    <div class="step-list reveal">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>User sends a message</h3>
+          <p>A WhatsApp text, shared GPS location, or a spoken voice query — in any language, on any device. No app required.</p>
+          <div class="step-tags"><span class="step-tag">Hindi</span><span class="step-tag">Odia</span><span class="step-tag">Telugu</span><span class="step-tag">Marathi</span><span class="step-tag">Tamil</span><span class="step-tag">Bengali</span></div>
+        </div>
+        <div class="step-icon-big">📩</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Language auto-detected and translated</h3>
+          <p>Google Cloud Translation detects the user's native language and translates to English for uniform AI processing.</p>
+          <div class="step-tags"><span class="step-tag">Google Translate API</span><span class="step-tag">50+ languages</span><span class="step-tag">Auto-detect</span></div>
+        </div>
+        <div class="step-icon-big">🌍</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Gemini AI classifies intent</h3>
+          <p>Gemini 2.5 Flash reads the message with a strict system prompt and outputs a structured JSON: intent, extracted data, confidence score.</p>
+          <div class="step-tags"><span class="step-tag">EMERGENCY</span><span class="step-tag">SYMPTOM</span><span class="step-tag">VACCINE</span><span class="step-tag">HOSPITAL</span><span class="step-tag">GENERAL</span></div>
+        </div>
+        <div class="step-icon-big">🧠</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Central orchestrator routes to the right service</h3>
+          <p>process_query.py calls the right backend service — Google Places API for hospitals, PostgreSQL for vaccines, or live AI for symptoms.</p>
+          <div class="step-tags"><span class="step-tag">Google Places API</span><span class="step-tag">PostgreSQL + PostGIS</span><span class="step-tag">NewsAPI</span></div>
+        </div>
+        <div class="step-icon-big">⚡</div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <h3>Response delivered in user's language</h3>
+          <p>The reply is translated back, then formatted for the channel — rich WhatsApp markdown with emojis, or clean short sentences for voice.</p>
+          <div class="step-tags"><span class="step-tag">TwiML XML (WhatsApp)</span><span class="step-tag">JSON (Voice)</span><span class="step-tag">Translated reply</span></div>
+        </div>
+        <div class="step-icon-big">✅</div>
+      </div>
+    </div>
+
+    <!-- Per-channel breakdown -->
+    <div class="reveal delay-2" style="margin-top:5rem">
+      <h2 class="headline-md text-center" style="margin-bottom:.5rem">Channel-specific flows</h2>
+      <p class="body-md text-center" style="margin-bottom:0">Same brain, different delivery.</p>
+    </div>
+    <div class="channel-compare reveal delay-3">
+      <div class="cc-card cc-wp">
+        <div class="cc-title">💬 WhatsApp Channel</div>
+        <ul class="cc-steps">
+          <li class="cc-step"><div class="cc-step-num">1</div><div class="cc-step-text">Twilio receives the WhatsApp message and POSTs to <code>/api/v1/chat</code></div></li>
+          <li class="cc-step"><div class="cc-step-num">2</div><div class="cc-step-text">Language detected → translated to English</div></li>
+          <li class="cc-step"><div class="cc-step-num">3</div><div class="cc-step-text">process_query() orchestrator called with source="whatsapp"</div></li>
+          <li class="cc-step"><div class="cc-step-num">4</div><div class="cc-step-text">Response formatted with emojis + markdown for WhatsApp display</div></li>
+          <li class="cc-step"><div class="cc-step-num">5</div><div class="cc-step-text">Translated back → returned as TwiML XML to Twilio</div></li>
+        </ul>
+      </div>
+      <div class="cc-card cc-voice">
+        <div class="cc-title">🎙️ Voice Channel</div>
+        <ul class="cc-steps">
+          <li class="cc-step"><div class="cc-step-num">1</div><div class="cc-step-text">Browser detects location → maps to nearest Indian state</div></li>
+          <li class="cc-step"><div class="cc-step-num">2</div><div class="cc-step-text">Firebase Auth → anonymous sign-in → load saved preferences</div></li>
+          <li class="cc-step"><div class="cc-step-num">3</div><div class="cc-step-text">Gemini Live Audio streams real-time microphone audio</div></li>
+          <li class="cc-step"><div class="cc-step-num">4</div><div class="cc-step-text">Safety guardrails evaluated in real-time (no diagnosis, no prescriptions)</div></li>
+          <li class="cc-step"><div class="cc-step-num">5</div><div class="cc-step-text">Gemini responds with voice audio in the user's detected language</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section dark-section text-center">
+  <div class="container-narrow reveal">
+    <span class="eyebrow">Try It</span>
+    <h2 class="headline-lg">See it in action.</h2>
+    <p class="body-lg" style="margin:1.5rem 0 3rem">Watch the system respond to real scenarios in the demo.</p>
+    <a href="experience.html" class="btn btn-grad">Open Interactive Demo →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span class="footer-logo">🩺 JeevanRekha</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a><a href="experience.html">Experience</a>
+      <a href="works.html">How It Works</a><a href="tech.html">Technology</a><a href="impact.html">Impact</a>
+    </div>
+    <p>Google Solution Challenge 2025 · UN SDG 3</p>
+  </div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>

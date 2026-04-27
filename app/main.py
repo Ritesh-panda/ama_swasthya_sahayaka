@@ -1,18 +1,37 @@
 # File: app/main.py
 
 from fastapi import FastAPI
-from app.api.v1 import chat_routes  # <--- 1. IMPORT THE NEW ROUTER
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from app.api.v1 import chat_routes, process_routes
 
 app = FastAPI(
-    title="Ama Swasthya Sahayaka",
-    description="An AI-driven public health chatbot for the people of Odisha.",
-    version="1.0.0"
+    title="JeevanRekha AI",
+    description="Intelligent Health Protocol — Centralized Orchestration for Voice & WhatsApp.",
+    version="2.0.0"
 )
+
+# --- CORS Middleware ---
+# Allows the React Voice Frontend to call this API from the browser.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, restrict to your deployed frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Static Files ---
+# Serves the generated audio files for WhatsApp voice notes.
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/", tags=["Health Check"])
 def read_root():
     """A simple health check endpoint."""
-    return {"status": "ok", "message": "Welcome to Ama Swasthya Sahayaka API!"}
+    return {"status": "ok", "message": "Welcome to JeevanRekha AI API v2.0!"}
 
-# 2. INCLUDE THE ROUTER IN THE MAIN APP
-app.include_router(chat_routes.router, prefix="/api/v1", tags=["Chat"])
+# --- WhatsApp Channel (Twilio Webhook) ---
+app.include_router(chat_routes.router, prefix="/api/v1", tags=["WhatsApp Channel"])
+
+# --- Voice Channel (React Frontend JSON API) ---
+app.include_router(process_routes.router, prefix="/api/v1", tags=["Voice Channel"])

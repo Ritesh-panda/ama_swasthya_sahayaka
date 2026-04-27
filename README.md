@@ -1,347 +1,368 @@
-# Ama Swasthya Sahayaka
+# 🏥 JeevanRekha (जीवनरेखा) — Intelligent Health Protocol
+### *Centralized Intelligence. Multi-Channel Accessibility. Zero Barriers.*
 
-> **An AI-driven, multi-lingual public health WhatsApp chatbot delivering instant medical guidance, emergency detection, and localized healthcare access for the people of Odisha.**
+> **JeevanRekha** is an omnichannel healthcare platform delivering AI-powered medical guidance via **WhatsApp** and a **high-performance voice assistant (JeevanRekha)**. Built for the Indian landscape, it ensures accessibility regardless of language, literacy, or device bandwidth.
 
 ---
 
-## 📖 Overview
+## 🚀 Live Demo
 
-**Ama Swasthya Sahayaka** (Our Health Assistant) is a localized healthcare accessibility platform built on WhatsApp. It bridges the gap between citizens and critical health information by leveraging advanced AI (Google Gemini / Vertex AI) to understand queries in regional languages (like Odia and Hindi) and provide real-time, actionable medical guidance. 
+| Channel | Link | Status |
+|---|---|---|
+| 🎙️ Voice App (JeevanRekha) | [jeevanrekha.app](https://your-voice-app-link.vercel.app) | ✅ Live |
+| 💬 WhatsApp Bot | [Chat on WhatsApp](https://wa.me/91XXXXXXXXXX?text=Namaste) | ✅ Live |
 
-**Who it is for:** Citizens seeking quick medical information, parents tracking child vaccinations, and anyone needing immediate localized hospital details.
-**Why it exists:** To democratize access to healthcare information, reduce panic during medical emergencies, and ensure life-saving guidance is accessible to everyone regardless of language barriers.
+### Try These Prompts
+Paste or speak any of these to see the system in action:
+
+- `"Mujhe kal se bukhaar hai"` — (Hindi) Fever since yesterday
+- `"Where is the nearest hospital?"` — Hospital discovery
+- `"My father has chest pain"` — Triggers emergency protocol
+- `"What vaccines does my 3-month-old baby need?"` — Vaccine scheduling
+- `"I have a headache and vomiting since morning"` — Symptom triage
+
+> 💡 The system responds in your regional language automatically based on location.
+
+---
+
+## 📑 Table of Contents
+1. [Key Features](#-key-features)
+2. [System Architecture](#-system-architecture)
+3. [The "Aura" Design Protocol](#-the-aura-design-protocol)
+4. [User Experience Flow](#-user-experience-flow)
+5. [Example Scenarios](#-example-scenarios)
+6. [Core Function Reference (Frontend)](#-core-function-reference-frontend)
+7. [Core Function Reference (Backend)](#-core-function-reference-backend)
+8. [Intent & Decision Logic](#-intent--decision-logic)
+9. [Emergency Escalation Protocol](#-emergency-escalation-protocol)
+10. [Safety & Limitations](#-safety--limitations)
+11. [Why This Matters](#-why-this-matters)
+12. [Installation & Setup](#-installation--setup)
+13. [Roadmap](#-roadmap)
 
 ---
 
 ## ✨ Key Features
 
-* **🚨 Intelligent Emergency Detection:** Automatically detects critical medical situations from user messages and prioritizes action-first responses (e.g., immediate steps, calling 108).
-* **🌍 Multi-lingual AI Support:** Auto-detects user language, translates queries to English for processing, and replies back in the user's native tongue.
-* **🏥 Geolocation Hospital Finder:** Integrates with WhatsApp location sharing and PostGIS to find the nearest hospitals and specialized doctors.
-* **🔎 AI Symptom Analysis:** Acts as a first-level triage, analyzing user-described symptoms and providing advisory guidance.
-* **💉 Automated Vaccination Scheduler:** Calculates personalized immunization schedules based on a child's Date of Birth.
-* **📰 Real-time Health Alerts:** Fetches the latest public health news and disease outbreak alerts.
+- 🎙️ **Multilingual Voice Interaction** — Supports 8+ Indian regional languages including Telugu, Hindi, Tamil, Gujarati, and Bengali. Language is auto-detected from GPS location.
+- ⚡ **Real-Time AI Responses** — Sub-second voice responses powered by Gemini 2.5 Flash with automatic fallback to Groq Llama 3.3 for high availability.
+- 📱 **WhatsApp Support** — Full functionality over basic text on 2G/3G networks. No app installation required.
+- 🚨 **Emergency Detection & Escalation** — Automatically identifies life-threatening symptoms and surfaces nearby hospitals with the 108 emergency number.
+- 🏥 **Live Hospital Discovery** — Fetches real-time nearby hospitals within a configurable radius using Google Places API, with distance and directions.
+- 💉 **Vaccine Scheduling** — Provides age-appropriate immunization guidance based on national health guidelines.
+- 🧠 **Contextual Session Memory** — Maintains conversation history within a session (1-hour TTL via Redis), enabling multi-turn medical conversations.
+- 🔒 **Built-in Medical Guardrails** — Hard-coded safety policies prevent prescription of medications or clinical diagnosis, keeping responses advisory only.
 
-### 🎯 System Use Cases
+---
+
+## 🏗️ System Architecture
+
+### Multi-Channel, Single-Brain Philosophy
+The system follows a **modular multi-channel architecture with a centralized AI backend**. Each input channel (Voice, WhatsApp) connects independently to a single orchestration layer, keeping the intelligence consistent and the channels interchangeable.
 
 ```mermaid
+flowchart TD
+    subgraph Users["👤 User Access"]
+        WA["WhatsApp (Twilio)"]
+        VU["Voice (JeevanRekha Web)"]
+    end
+
+    subgraph Sensory["📡 Sensory Layer (Frontend)"]
+        ReactApp["React + Vite + Firebase SDK"]
+        TwilioAPI["Twilio Message Gateway"]
+    end
+
+    subgraph Cognitive["🧠 Cognitive Layer (Backend)"]
+        Orch["🎯 process_query.py (Orchestrator)"]
+        AI["ai_service.py (Gemini 2.5 + Groq)"]
+        Maps["maps_service.py (Google Places)"]
+        Trans["translation_service.py (Google Cloud)"]
+    end
+
+    subgraph Data["🗄️ Data Layer"]
+        PG[("PostgreSQL + PostGIS")]
+        Redis[("Redis Session Cache")]
+    end
+
+    WA --> TwilioAPI --> Orch
+    VU --> ReactApp
+    ReactApp <-->|"Live Audio"| GeminiLive["Gemini Live API"]
+    ReactApp -->|"Data Fetch"| Orch
+
+    Orch --> AI
+    Orch --> Maps
+    Orch --> Trans
+    AI <--> Redis
+    Orch <--> PG
+```
+
+### 🧠 Architecture Philosophy
+*   **Multi-Channel Strategy:** The backend is channel-agnostic, supporting both high-bandwidth Voice (WebRTC) and ultra-low-bandwidth Text (WhatsApp/2G) via a single unified orchestrator.
+*   **Centralized Orchestration:** All intelligence is routed through `process_query.py`, ensuring consistent health guardrails and intent classification across all entry points.
+*   **Model-Agnostic Resilience:** Utilizes a primary **Gemini 2.5 Flash** engine with an automated fallback to **Groq (Llama-3.3-70b)** to maintain high availability.
+*   **Modular Service Layer:** Triage, Mapping, and Translation are decoupled into independent services, allowing for independent scaling and local integration.
+
+> **Scalability Note:** This architecture supports horizontal scaling across regions, languages, and healthcare integrations — new languages, states, or API services (e.g., Ayushman Bharat) can be added without modifying the core orchestration layer.
+
+---
+
+## 📊 System Design & Flow Diagrams
+
+### 1. High-Level System Architecture
+The top-level view of how users interact with the healthcare protocol across different platforms.
+
+(See Diagram in System Architecture Section Above)
+
+### 2. Data Flow Diagram
+Visualizing the journey of a user query from raw audio/text to actionable medical guidance.
+
+```mermaid id="df_final"
+flowchart TD
+    User -->|Voice| VoiceApp
+    User -->|Text| WhatsApp
+
+    VoiceApp --> Backend
+    WhatsApp --> Backend
+
+    Backend --> AI[AI Engine]
+    Backend --> Maps
+    Backend --> Translation
+
+    AI --> Backend
+    Backend --> Response
+
+    Response --> VoiceApp
+    Response --> WhatsApp
+```
+
+### 3. Component Diagram
+The internal structure of the FastAPI backend and its interaction with stateful data layers.
+
+```mermaid id="comp_final"
 flowchart LR
-    User([User / Citizen])
-    
-    subgraph Ama Swasthya Sahayaka
-        UC1[Symptom Analysis]
-        UC2[Emergency Triage]
-        UC3[Hospital & Doctor Finder]
-        UC4[Vaccine Scheduling]
-        UC5[Health Alerts]
-    end
-    
-    User -->|WhatsApp Message| UC1
-    User -->|Text/Location| UC2
-    User -->|Share Location| UC3
-    User -->|Provide DOB| UC4
-    User -->|Request Updates| UC5
+    Client[Frontend Clients]
+    API[FastAPI Server]
+
+    AI[AI Service]
+    Maps[Maps Service]
+    Trans[Translation Service]
+    Vaccine[Vaccine Service]
+
+    DB[(PostgreSQL)]
+    Cache[(Redis)]
+
+    Client --> API
+    API --> AI
+    API --> Maps
+    API --> Trans
+    API --> Vaccine
+
+    AI --> Cache
+    API --> DB
+```
+
+### 4. Activity Diagram
+The decision-making logic used by the AI Orchestrator to route user intents.
+
+```mermaid id="act_final"
+flowchart TD
+    Start --> Input[User Input]
+    Input --> AI[AI Intent Detection]
+
+    AI --> Check{Intent Type}
+
+    Check -->|Emergency| Emergency[Trigger Emergency Flow]
+    Check -->|Vaccine| Vaccine[Get Vaccine Schedule]
+    Check -->|Doctor| Doctor[Fetch Doctors]
+    Check -->|General| General[Return AI Response]
+
+    Emergency --> Output
+    Vaccine --> Output
+    Doctor --> Output
+    General --> Output
+```
+
+### 5. Sequence Diagram
+(See Emergency Escalation Protocol Section Below)
+
+### 6. Use Case Diagram
+Defining the core interactions available to the end-user.
+
+```mermaid id="usecase_final"
+flowchart LR
+    User((User))
+
+    UC1[Symptom Check]
+    UC2[Find Hospital]
+    UC3[Vaccine Info]
+    UC4[Emergency Help]
+
+    User --> UC1
+    User --> UC2
+    User --> UC3
+    User --> UC4
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## 🎨 The "Aura" Design Protocol
+The frontend, **JeevanRekha**, follows a high-fidelity interaction model designed for low-friction healthcare access.
 
-**Backend Framework:**
-* FastAPI (Python 3)
-* Uvicorn (ASGI Server)
+### 🎙️ Interaction State Machine
+The centerpiece of the UI reflects the AI's internal cognitive state through responsive visual feedback:
 
-**Database & Infrastructure:**
-* PostgreSQL (Relational Database)
-* PostGIS / GeoAlchemy2 (Geospatial querying for hospitals)
-* SQLAlchemy (ORM) & Alembic (Migrations)
-* Redis & Celery (Asynchronous Task Queues)
-
-**AI & Cloud Integrations:**
-* Google Generative AI (Gemini) & Vertex AI (Intent classification & Medical AI)
-* Google Cloud Translation (Multi-lingual support)
-* Twilio API (WhatsApp Sandbox Webhooks)
-* NewsAPI (Health alerts)
-
-### 🧩 Component Architecture
-
-```mermaid
-flowchart TD
-    User((WhatsApp User)) <-->|Twilio API| Webhook
-    
-    subgraph FastAPI Application
-        Webhook[API Router] --> Services[Service Layer]
-        Services --> CRUD[Data Access Layer]
-    end
-    
-    subgraph External APIs
-        Services <--> Translation[Google Translate]
-        Services <--> LLM[Vertex AI / Gemini]
-        Services <--> News[News API]
-    end
-    
-    subgraph Data Layer
-        CRUD <--> PostgreSQL[(PostgreSQL + PostGIS)]
-        Services <--> Redis[(Redis Cache/Broker)]
-        Redis <--> Celery[Celery Workers]
-    end
-```
+| State | CSS Class | Animation | Background |
+|---|---|---|---|
+| **Idle** | `orb-body` | Gentle Breath | Multi-color Radial Gradient |
+| **Listening** | `listening` | Rapid Scale Pulse | Cyan-Blue Glow |
+| **Thinking** | `thinking` | 360° Conic Rotation | Rotating Aura Spirit |
+| **Speaking** | `speaking` | High-Freq Alternation | Warm Magenta/Orange |
 
 ---
 
-## 🏗️ Architecture
+## 📱 User Experience Flow
+A seamless, 4-step journey designed for accessibility:
+1.  **Entry:** User opens the platform via Web or WhatsApp.
+2.  **Recognition:** System automatically detects location (GPS) and maps the primary regional language (e.g., Gujarati, Telugu).
+3.  **Interaction:** User speaks naturally. The AI processes symptoms and intent in real-time with sub-second latency.
+4.  **Action:** AI provides clear guidance, locates nearby care, or triggers the Emergency Protocol if critical symptoms are detected.
 
-1. **User Interaction:** The user sends a WhatsApp message in their preferred language to the Twilio Sandbox number.
-2. **Ingestion & Translation:** Twilio sends a POST webhook to the FastAPI backend (`/api/v1/chat`). The system detects the language and translates the payload into English.
-3. **Intent Routing:** The message is fed into Google Vertex AI/Gemini, which uses structured schemas to classify the intent (`EMERGENCY`, `SYMPTOM_ANALYSIS`, `HOSPITAL_FINDER`, `VACCINE_SCHEDULE`, `GET_ALERTS`).
-4. **Service Execution:**
-   * *Emergency/Symptom:* AI generates medical advisory text.
-   * *Location:* PostGIS queries the database for hospitals nearest to the provided coordinates.
-   * *Vaccine:* The system calculates future vaccine dates based on the provided DOB.
-5. **Response & Delivery:** The final response is translated back into the user's native language and dispatched via Twilio's Messaging API.
+---
 
-### 🔀 Core Logic Flow (Activity Diagram)
+## 💬 Example Scenarios
 
-```mermaid
-flowchart TD
-    Start([Receive WhatsApp Message]) --> DetectLang{Is English?}
-    DetectLang -- No --> TranslateIn[Translate to English]
-    DetectLang -- Yes --> RouteIntent
-    TranslateIn --> RouteIntent[Analyze Intent via Vertex AI]
-    
-    RouteIntent --> Switch{Intent Type}
-    
-    Switch -- EMERGENCY --> Emg[Generate Actionable Steps]
-    Switch -- HOSPITAL_FINDER --> Loc{Has Location?}
-    Loc -- Yes --> PostGIS[Find Nearest Hospital]
-    Loc -- No --> AskLoc[Prompt for Location]
-    
-    Switch -- VACCINE_SCHEDULE --> DOB{Has DOB?}
-    DOB -- Yes --> Calc[Calculate Schedule]
-    DOB -- No --> AskDOB[Prompt for DOB]
-    
-    Switch -- SYMPTOM_ANALYSIS --> Symp[Generate AI Triage Advice]
-    Switch -- GET_ALERTS --> Alerts[Fetch News API]
-    
-    Emg --> Finalize
-    PostGIS --> Finalize
-    AskLoc --> Finalize
-    Calc --> Finalize
-    AskDOB --> Finalize
-    Symp --> Finalize
-    Alerts --> Finalize
-    
-    Finalize[Prepare Final Response] --> DetectOrig{Original Lang English?}
-    DetectOrig -- No --> TranslateOut[Translate to Original Language]
-    DetectOrig -- Yes --> Send
-    
-    TranslateOut --> Send[Send Twilio XML Response]
-    Send --> Finish([End])
-```
+These scenarios demonstrate how the system handles real-world queries across different intents:
 
-### 🔄 System Workflow Sequence Diagram
+**Symptom Check**
+> User: *"I have had a fever since yesterday and my body is aching."*
+> JeevanRekha: Asks clarifying questions (duration, temperature, other symptoms), advises home care, and flags when a doctor visit is warranted.
+
+**Hospital Discovery**
+> User: *"Where is the nearest government hospital?"*
+> JeevanRekha: Uses GPS to fetch the top 3 nearby hospitals, returns names, distances, and directions.
+
+**Emergency Detection**
+> User: *"My father suddenly has severe chest pain and cannot breathe."*
+> JeevanRekha: Immediately activates Emergency Protocol — displays red alert UI, instructs user to call 108, and lists the 3 nearest hospitals.
+
+**Vaccine Information**
+> User: *"My baby is 3 months old. What vaccines are due?"*
+> JeevanRekha: Returns the national immunization schedule for that age group, including vaccine names and recommended dates.
+
+**Multilingual Query**
+> User (in Telugu): *"నాకు రెండు రోజుల నుండి తలనొప్పిగా ఉంది."* (Headache for two days)
+> JeevanRekha: Detects Telugu from GPS (Andhra Pradesh), responds entirely in Telugu with relevant guidance.
+
+---
+
+## 🛡️ Safety & Limitations
+*   **Advisory Only:** JeevanRekha provides general health guidance and information. It is **not** a diagnostic tool.
+*   **No Prescriptions:** The system is strictly prohibited from recommending specific medications or dosages.
+*   **Emergency Priority:** Any signal of a life-threatening condition (Chest pain, severe trauma) triggers an immediate override, escalating to 108 emergency services and hospital locating.
+*   **Human-in-the-loop:** Users are always advised to consult a certified medical professional for formal clinical diagnosis.
+
+---
+
+## 🌍 Why This Matters
+India faces a massive **Healthcare Accessibility Gap**.
+*   **Language Barrier:** Millions cannot access quality info because it's only available in English or Hindi.
+*   **Literacy & Tech Gap:** Complex apps fail those with low digital literacy.
+*   **The Voice Solution:** By combining **WhatsApp (Low Bandwidth)** and **Voice (Natural Interface)**, JeevanRekha ensures that even a person with basic phone access can get life-saving medical guidance in their mother tongue.
+
+---
+
+## 💻 Core Function Reference (Frontend)
+
+### `App.tsx` — Application Logic
+- **`startCall(promptText?: string)`**:
+  - Initializes Firebase Anonymous Auth.
+  - Connects to the **Gemini Multimodal Live** model.
+  - Establishes an audio-only WebRTC session.
+  - Sends the **System Instruction** and the **Opening Turn** (or a specific Demo prompt).
+- **`handleUseLocation()`**:
+  - Requests GPS coordinates via Browser API.
+  - Uses `inferNearestState` to map coordinates to one of 30+ Indian State Profiles.
+  - Triggers a system-wide Language/Region update.
+- **`endCall()`**:
+  - Gracefully terminates the WebRTC controller and session.
+  - Resets the `callTimer` and `aiStatus`.
+
+### `healthGuardrails.ts` — The "Safety Brain"
+- **`buildSystemInstruction()`**:
+  - Dynamically constructs the 2,000+ word system prompt.
+  - Injects the user's **Current State**, **Primary Language**, and **GPS Coordinates**.
+  - Enforces the **Medical Safety Policy** (No prescriptions, No diagnosis).
+
+---
+
+## ⚙️ Core Function Reference (Backend)
+
+### `process_query.py` — The Orchestrator
+- **`process_query(input, source, lat, lng)`**:
+  - The central entry point for all channels.
+  - Routes the query through the `ai_service` for intent classification.
+  - Branching logic: If intent is `EMERGENCY`, triggers `maps_service` immediately.
+
+### `ai_service.py` — The Cognitive Router
+- **`get_ai_response(user_id, message)`**:
+  - Manages the **Primary-Fallback System**.
+  - **Gemini 2.5 Flash** (Primary) ➔ **Groq Llama 3.3** (Fallback).
+  - Maintains session memory using **Upstash Redis** (1-hour TTL).
+
+---
+
+## 🚨 Emergency Escalation Protocol
+
+When an emergency signal is detected (Chest pain, bleeding, etc.), the system initiates the **Crisis Sequence**:
 
 ```mermaid
 sequenceDiagram
-    participant U as User (WhatsApp)
-    participant T as Twilio Sandbox
-    participant F as FastAPI Backend
-    participant Tr as Google Translation
-    participant AI as Vertex AI / Gemini
-    participant DB as PostgreSQL + PostGIS
+    participant U as User
+    participant AI as AI System
+    participant Maps as Maps API
+    participant UI as Aura Overlay
 
-    U->>T: Sends Message (e.g., in Odia/Hindi)
-    T->>F: Webhook POST /api/v1/chat
-    F->>Tr: Detect Language & Translate to English
-    Tr-->>F: English Translation
-    F->>AI: Determine Intent & Medical Context
-    AI-->>F: Structured Intent
-    
-    alt is EMERGENCY
-        F->>F: Generate Action-First Emergency Response
-    else is HOSPITAL_FINDER
-        F->>DB: Query Nearest Hospitals (ST_DWithin)
-        DB-->>F: Hospital List
-    else is VACCINE_SCHEDULE
-        F->>DB: Fetch Vaccine Schedule based on DOB
-        DB-->>F: Schedule Data
-    end
-    
-    F->>Tr: Translate Response to User's Language
-    Tr-->>F: Translated Response
-    F->>T: TwiML XML Response
-    T->>U: WhatsApp Reply
+    U->>AI: "I think my father is having a heart attack"
+    AI->>AI: Intent = EMERGENCY
+    AI->>Maps: Fetch top 3 hospitals within 10km
+    Maps-->>AI: [Apollo, Max, Fortis]
+    AI->>UI: Trigger Emergency State
+    UI->>UI: UI Background = Deep Red
+    UI->>U: "EMERGENCY DETECTED. CALL 108 NOW."
+    UI->>U: List Hospital A (1.2km), Hospital B (2.4km)
 ```
+
+> ⚠️ **Safety Priority:** The system overrides all conversational flows when an emergency intent is detected. Emergency response is non-interruptible and always surfaces the 108 helpline and hospital locations first, before any other guidance.
 
 ---
 
-## 🗄️ Database Schema
+## 🛠️ Installation & Setup
 
-```mermaid
-erDiagram
-    USER {
-        string id PK "WhatsApp number"
-        string language_preference
-        datetime created_at
-    }
-    HOSPITAL {
-        int id PK
-        string name
-        string city
-        geometry location "POINT"
-    }
-    DOCTOR {
-        int id PK
-        string name
-        string specialty
-        int hospital_id FK
-    }
-    VACCINE {
-        int id PK
-        string name
-        int due_at_weeks_min
-        int due_at_weeks_max
-        text details
-    }
-    APPOINTMENT {
-        int id PK
-        string user_id FK
-        int doctor_id FK
-        int hospital_id FK
-        datetime appointment_time
-        string status
-        datetime created_at
-    }
-
-    HOSPITAL ||--o{ DOCTOR : "has"
-    USER ||--o{ APPOINTMENT : "books"
-    DOCTOR ||--o{ APPOINTMENT : "assigned to"
-    HOSPITAL ||--o{ APPOINTMENT : "hosted at"
-```
-
----
-
-## 📂 Folder Structure
-
-```text
-ama_swasthya_sahayaka/
-├── alembic/                # Database migration scripts and versions
-├── app/
-│   ├── api/                # API routers (Twilio webhook endpoints)
-│   ├── core/               # App configuration and environment variables
-│   ├── crud/               # Database operations (Users, Hospitals, Vaccines)
-│   ├── db/                 # DB connection and session management
-│   ├── models/             # SQLAlchemy ORM models (including PostGIS Geometry)
-│   ├── schemas/            # Pydantic models for strict data validation
-│   └── services/           # Core business logic (AI, Maps, Translation, Alerts)
-├── .env                    # Environment variables configuration
-├── requirements.txt        # Python dependencies
-├── alembic.ini             # Alembic configuration
-├── seed_database.py        # Script to mock hospitals and doctors
-└── seed_vaccines.py        # Script to populate standard immunization data
-```
-
----
-
-## 🚀 Setup & Installation
-
-**1. Clone the repository**
+### 1. Backend Protocol (FastAPI)
 ```bash
-git clone https://github.com/your-username/ama-swasthya-sahayaka.git
-cd ama-swasthya-sahayaka
-```
-
-**2. Set up a virtual environment**
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows use: .\venv\Scripts\activate
-```
-
-**3. Install dependencies**
-```bash
+cd app
 pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 ```
 
-**4. Configure Environment Variables**
-Create a `.env` file in the root directory and add the following:
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/dbname
-TWILIO_ACCOUNT_SID=your_account_sid
-TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_PHONE_NUMBER=whatsapp:+14155238886
-GOOGLE_API_KEY=your_gemini_api_key
-NEWS_API_KEY=your_news_api_key
-```
-*(Ensure your PostgreSQL database has the PostGIS extension enabled: `CREATE EXTENSION postgis;`)*
-
-**5. Run Database Migrations & Seeding**
+### 2. Frontend Protocol (React)
 ```bash
-alembic upgrade head
-python seed_database.py
-python seed_vaccines.py
+cd voice_frontend
+npm install
+npm run dev
 ```
 
-**6. Start the API Server**
-```bash
-uvicorn app.main:app --reload
-```
-
-**7. Expose Local Server**
-Use Ngrok to expose your local FastAPI server to the internet, then paste the Ngrok URL (`https://<your-ngrok-url>/api/v1/chat`) into your Twilio WhatsApp Sandbox Webhook settings.
-```bash
-ngrok http 8000
-```
+### 3. Environment Specs
+Ensure you have the following keys in your `.env`:
+- `FIREBASE_CONFIG`: For the Live AI SDK.
+- `GOOGLE_API_KEY`: For Gemini and Maps.
+- `UPSTASH_REDIS_URL`: For persistent session memory.
+- `GROQ_API_KEY`: For high-availability fallback.
 
 ---
 
-## 📱 Usage
-
-Once running, interact with the bot on WhatsApp using natural language:
-
-* **Symptom Triage:** *"Mujhe bukhar aur sardi hai"* (Hindi: I have a fever and cold)
-* **Hospital Finder:** Tap the `+` icon on WhatsApp > **Location** > **Share Current Location**
-* **Vaccination:** *"Vaccine schedule for baby born on 10 Jan 2025"*
-* **Alerts:** *"What are the latest health alerts?"*
-
----
-
-## 🌐 API Endpoints
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/` | Basic health check endpoint. |
-| `POST` | `/api/v1/chat` | Main Twilio Webhook. Receives `From`, `Body`, `Latitude`, and `Longitude` as form data. |
-
----
-
-## 🗺️ Roadmap
-
-* **Voice Note Integration:** Process WhatsApp audio messages using Google Cloud Speech-to-Text for users who cannot type.
-* **Telemedicine Handoff:** Integrate with local doctor APIs to allow direct appointment booking from the chat.
-* **Image Analysis:** Allow users to upload images of prescriptions or visible symptoms (rashes, wounds) for preliminary AI analysis.
-* **Push Notifications:** Send proactive automated WhatsApp reminders for upcoming baby vaccinations.
-
----
-
-## ⚠️ Limitations / Assumptions
-
-* **Production WhatsApp Access:** The current setup assumes the use of the Twilio Sandbox. For production, a verified WhatsApp Business API account is required.
-* **Medical Liability:** The AI provides *advisory* information. It is strictly not a replacement for professional medical diagnosis.
-* **Infrastructure:** Accurate hospital discovery requires a well-populated, production-grade PostGIS database with verified coordinates.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-1. Fork the repository.
-2. Create a new feature branch (`git checkout -b feature/amazing-feature`).
-3. Commit your changes (`git commit -m 'Add amazing feature'`).
-4. Push to the branch (`git push origin feature/amazing-feature`).
-5. Open a Pull Request.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
+## 🛤️ Roadmap
+- [x] **Phase 1:** Real-time Voice (Gemini Live).
+- [x] **Phase 2:** Aura Design System & Multilingual Support (8+ Languages).
+- [ ] **Phase 3:** WhatsApp Voice Note processing (STT integration).
+- [ ] **Phase 4:** Official Ayushman Bharat API integration for live scheme checks.

@@ -1,140 +1,114 @@
 # File: app/api/v1/chat_routes.py
 
+import os
 import logging
-from fastapi import APIRouter, Depends, Form, Response
-from sqlalchemy.orm import Session
-from twilio.twiml.messaging_response import MessagingResponse
+from fastapi import APIRouter, Request, Form, Response
 from typing import Optional
-from datetime import datetime
-
-from app.crud import crud_user, crud_hospitals
-from app.schemas.user import UserCreate
+from twilio.twiml.messaging_response import MessagingResponse
+from app.services.ai_service import get_ai_response
+from app.services.voice_service import transcribe_audio, generate_speech
+from app.services.maps_service import find_nearby_hospitals
 from app.schemas.ai import ChatIntent
-from app.db.session import SessionLocal
-from app.services import (
-    ai_service, maps_service, vaccine_service, alert_service, translation_service
-)
-
-logger = logging.getLogger(__name__)
-
-# --- THE COMPLETE MENU TEXT ---
-MENU_TEXT = """Hi! I am Ama Swasthya Sahayaka. I can help you with:
-
-*1. Symptom Analysis* 🔎
-(e.g., "I have a fever and headache")
-
-*2. Hospital Finder* 🏥
-(e.g., "find a hospital near me")
-
-*3. Vaccination Schedule* 💉
-(e.g., "vaccine schedule for baby born on 10 Jan 2025")
-
-*4. Latest Health Alerts* 🚨
-(e.g., "what are the latest health alerts?")
-
-just ask your question directly!"""
-# ------------------------------
-
-def get_db():
-    db = SessionLocal()
-    try: yield db
-    finally: db.close()
+import httpx
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/chat")
-def handle_chat_message(
+async def chat_endpoint(
+    request: Request,
     From: str = Form(...),
-    Body: Optional[str] = Form(None),
-    Latitude: Optional[float] = Form(None),
-    Longitude: Optional[float] = Form(None),
-    db: Session = Depends(get_db)
+    Body: str = Form(None),
+    MediaUrl0: str = Form(None),
+    NumMedia: int = Form(0),
+    Latitude: Optional[str] = Form(None),
+    Longitude: Optional[str] = Form(None),
 ):
+    twiml = MessagingResponse()
     user_id = From
-    user = crud_user.get_user(db, user_id=user_id)
-    twiml_response = MessagingResponse()
-    
-    source_language = "en"
-    message_body_en = Body.strip().lower() if Body else ""
+    user_message = Body or ""
 
-    if Body:
-        source_language = translation_service.detect_language(Body)
-        if source_language not in ["en", "und"]:
-             message_body_en = translation_service.translate_text(Body, 'en')
-    
-    reply_en = ""
+    logger.info(f"--- 📥 INCOMING from {user_id}: '{user_message}' | Lat={Latitude} Lng={Longitude} ---")
 
-    if not user:
-        user_in = UserCreate(id=user_id)
-        crud_user.create_user(db=db, user=user_in) # Corrected to use 'user'
-        reply_en = MENU_TEXT
-    
-    elif Latitude and Longitude:
-        reply_en = maps_service.find_nearby_hospitals(latitude=Latitude, longitude=Longitude)
-    
-    elif message_body_en in ["1", "2", "3", "4"]:
-        if message_body_en == "1":
-            reply_en = "You've selected Symptom Analysis. Please describe your symptoms in detail."
-        elif message_body_en == "2":
-            reply_en = "You've selected Hospital Finder. Please use the WhatsApp location feature to share your current location with me."
-        elif message_body_en == "3":
-            reply_en = "You've selected Vaccination Schedule. Please tell me the child's date of birth, for example: 'baby born on 10 January 2025'."
-        elif message_body_en == "4":
-            reply_en = alert_service.get_health_alerts()
-    else:
-        ai_response = ai_service.get_ai_response(user_id=user_id, user_message=message_body_en)
+    # ─────────────────────────────────────────────
+    # 1. 📍 LOCATION SHARED — Instant Hospital Search
+    # ─────────────────────────────────────────────
+    if Latitude and Longitude:
+        logger.info(f"--- 📍 Location received: {Latitude}, {Longitude} ---")
+        try:
+            lat = float(Latitude)
+            lng = float(Longitude)
+            hospital_list = find_nearby_hospitals(lat, lng)
+            reply_text = (
+                f"📍 *Got your location!* Searching nearby...\n\n"
+                f"{hospital_list}\n\n"
+                f"🩺 *Tip:* You can also ask me about your symptoms and I'll help you decide which specialist to visit."
+            )
+        except Exception as e:
+            logger.error(f"Location Handler Error: {e}")
+            reply_text = "I received your location but had trouble finding nearby hospitals. Please try again."
 
-        if ai_response.intent == ChatIntent.EMERGENCY:
-            logger.warning(f"EMERGENCY DETECTED: {ai_response.data.emergency_type} for User: {user_id}")
-            
-            # Formatted action-first emergency response
-            reply_en = "🚨 *MEDICAL EMERGENCY DETECTED* 🚨\n\n"
-            reply_en += "This system cannot dispatch an ambulance. Follow these steps IMMEDIATELY:\n\n"
-            reply_en += "1️⃣ *DIAL 108* (Ambulance/Emergency Services) immediately.\n"
-            reply_en += "2️⃣ Ensure your safety and stay calm.\n"
-            
-            if ai_response.data.emergency_type:
-               reply_en += f"\n*Detected Situation:* {ai_response.data.emergency_type}\n"
-               
-            reply_en += f"\n*Guidance:* {ai_response.reply}\n\n"
-            reply_en += "Reply 'find a hospital near me' to share your location for nearby centers."
-            
-        elif ai_response.intent == ChatIntent.SHOW_MENU:
-            reply_en = MENU_TEXT
-            
-        elif ai_response.intent == ChatIntent.VACCINE_SCHEDULE:
-            if ai_response.data.date_of_birth:
-                try:
-                    date_of_birth = datetime.strptime(ai_response.data.date_of_birth, "%Y-%m-%d").date()
-                    reply_en = vaccine_service.calculate_vaccine_schedule(db, date_of_birth=date_of_birth)
-                except Exception as e:
-                    logger.error(f"Date format error: {e}")
-                    reply_en = "I couldn't understand that date. Please tell me again using YYYY-MM-DD or a clear format."
-            else:
-                reply_en = "Please provide the exact date of birth for the vaccine schedule."
-        
-        elif ai_response.intent == ChatIntent.FIND_DOCTORS:
-            if ai_response.data.hospital_name:
-                hospital = crud_hospitals.get_hospital_by_name(db, hospital_name=ai_response.data.hospital_name)
-                if hospital and hospital.doctors:
-                    doctor_list = f"Here are the doctors for *{hospital.name}*:\n\n"
-                    for doc in hospital.doctors:
-                        doctor_list += f"🩺 *Dr. {doc.name}* ({doc.specialty})\n"
-                    reply_en = doctor_list
-                else:
-                    reply_en = f"I couldn't find any doctors for '{ai_response.data.hospital_name}'."
-            else:
-                reply_en = "Please specify the name of the hospital you are looking for."
-        
-        elif ai_response.intent == ChatIntent.GET_ALERTS:
-            reply_en = alert_service.get_health_alerts()
-            
-        else: # GENERAL_CHAT
-            reply_en = ai_response.reply
-    
-    final_reply = reply_en
-    if source_language not in ["en", "und"]:
-        final_reply = translation_service.translate_text(reply_en, source_language)
-    
-    twiml_response.message(final_reply)
-    return Response(content=str(twiml_response), media_type="application/xml")
+        twiml.message(reply_text)
+        return Response(content=str(twiml), media_type="text/xml")
+
+    # ─────────────────────────────────────────────
+    # 2. 🎙️ VOICE NOTE — Transcribe & Process
+    # ─────────────────────────────────────────────
+    is_voice = False
+    if MediaUrl0 and NumMedia > 0:
+        is_voice = True
+        logger.info(f"--- 🎙️ Voice note received: {MediaUrl0} ---")
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(MediaUrl0)
+                if resp.status_code == 200:
+                    temp_audio = f"app/static/audio/input_{user_id.replace(':', '_')}.ogg"
+                    os.makedirs("app/static/audio", exist_ok=True)
+                    with open(temp_audio, "wb") as f:
+                        f.write(resp.content)
+                    user_message = await transcribe_audio(temp_audio)
+                    logger.info(f"--- ✅ Transcribed: {user_message} ---")
+        except Exception as e:
+            logger.error(f"Voice Error: {e}")
+            user_message = "I couldn't process your voice note. Please type your concern."
+
+    # ─────────────────────────────────────────────
+    # 3. 🤖 TEXT MESSAGE — AI Response
+    # ─────────────────────────────────────────────
+    ai_response = get_ai_response(user_id, user_message)
+    reply_text = ai_response.reply or "Namaste! How can I help you today?"
+
+    # ─────────────────────────────────────────────
+    # 4. 🔀 ROUTING LOGIC
+    # ─────────────────────────────────────────────
+    if ai_response.intent == ChatIntent.EMERGENCY:
+        reply_text = (
+            f"🚨 *EMERGENCY DETECTED*\n\n"
+            f"{ai_response.reply}\n\n"
+            f"📍 *Share your WhatsApp location* to find the nearest emergency hospital instantly!\n"
+            f"_(Tap the 📎 attachment icon → Location → Send Current Location)_"
+        )
+    elif ai_response.intent == ChatIntent.FIND_DOCTORS:
+        reply_text = (
+            f"{ai_response.reply}\n\n"
+            f"📍 *To find real nearby hospitals, share your WhatsApp location!*\n"
+            f"_(Tap the 📎 attachment icon → Location → Send Current Location)_"
+        )
+
+    logger.info(f"--- 📤 OUTGOING Intent={ai_response.intent.value}: {reply_text[:60]}... ---")
+
+    # ─────────────────────────────────────────────
+    # 5. 📨 SEND RESPONSE
+    # ─────────────────────────────────────────────
+    msg = twiml.message(reply_text)
+
+    if is_voice:
+        try:
+            audio_path = await generate_speech(reply_text)
+            audio_url = f"{request.base_url}static/audio/{os.path.basename(audio_path)}"
+            msg.media(audio_url)
+            logger.info(f"--- 🔊 Voice Response: {audio_url} ---")
+        except Exception as e:
+            logger.error(f"TTS Error: {e}")
+
+    return Response(content=str(twiml), media_type="text/xml")

@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     REDIS_URL: str | None = None
     NEWS_API_KEY: str | None = None
     GOOGLE_MAPS_API_KEY: str | None = None
+    GROQ_API_KEY: str | None = None
     class Config:
         case_sensitive = True
 

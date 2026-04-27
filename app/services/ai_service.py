@@ -2,117 +2,178 @@
 
 import json
 import logging
-import redis
-import google.generativeai as genai
+import re
+from google import genai
+from google.genai import types as genai_types
+from groq import Groq
 from app.core.config import settings
 from app.schemas.ai import AIStructuredResponse, ChatIntent, AIDataDetails
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# --- Redis Setup ---
-redis_client = None
-try:
-    redis_client = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-    redis_client.ping()
-    logger.info("--- Successfully connected to Redis. ---")
-except Exception as e:
-    logger.error(f"--- ERROR: Could not connect to Redis: {e} ---")
+# --- GLOBAL IN-MEMORY CACHE ---
+memory_cache = {}
 
-# --- Gemini Model Setup ---
-model = None
+# --- PRIMARY: Gemini 2.5 Flash ---
+gemini_client = None
+GEMINI_MODEL = "gemini-2.5-flash"
 try:
     if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "YOUR_GEMINI_API_KEY_HERE":
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        # Upgraded to gemini-2.0-flash per audit recommendations
-        model = genai.GenerativeModel('gemini-2.0-flash-lite-001')
-        logger.info("--- Successfully connected to Gemini API. ---")
-    else:
-        logger.warning("--- WARNING: GEMINI_API_KEY is not set. AI service will be disabled. ---")
+        gemini_client = genai.Client(api_key=settings.GEMINI_API_KEY)
+        logger.info(f"--- ✅ PRIMARY: {GEMINI_MODEL} ready (google.genai SDK). ---")
 except Exception as e:
-    logger.error(f"--- ERROR: Failed to configure Gemini API: {e} ---")
+    logger.warning(f"--- ⚠️ Gemini setup failed: {e} ---")
 
-SYSTEM_PROMPT = """You are Arogya Mitra, a highly precise AI Healthcare Routing Engine & Emergency Assistant for India.
-Your SOLE purpose is to classify user queries and output a strictly formatted JSON object.
-DO NOT output conversational text outside of the JSON block.
-DO NOT wrap the response in markdown blocks like ```json.
+# --- FALLBACK: Groq Llama-3 ---
+groq_client = None
+try:
+    if settings.GROQ_API_KEY:
+        groq_client = Groq(api_key=settings.GROQ_API_KEY)
+        logger.info("--- ✅ FALLBACK: Groq Llama-3 ready. ---")
+except Exception as e:
+    logger.error(f"--- ERROR: Failed to configure Groq: {e} ---")
 
-ALLOWED INTENTS:
-- "emergency": Life-threatening situations (heart attack, severe bleeding, breathing issues, severe trauma).
-- "find_doctors": User wants to find doctors at a specific hospital.
-- "vaccine_schedule": User is asking for child vaccination dates based on a DOB.
-- "get_alerts": User asks for general health news or alerts.
-- "show_menu": User is greeting or asking what you can do.
-- "general_chat": Non-emergency medical advice, symptom analysis, or anything else.
+# --- SYSTEM PROMPT ---
+SYSTEM_PROMPT = """You are Arogya Mitra, a senior medical expert from India with a heart of gold.
+You are world-renowned for your empathy, medical precision, and ability to make patients feel safe.
 
-RULES:
-1. Always output valid JSON exactly matching this structure:
+TONE & PERSONALITY:
+- Be incredibly warm, supportive, and human (NOT robotic).
+- Use *bold text* for emphasis and clear spacing for readability.
+- Refer back to what the user said previously (use the provided history).
+- If the user is in pain, acknowledge it with deep compassion.
+
+MEDICAL PROTOCOL:
+- Analyze symptoms carefully.
+- Ask clarifying questions (e.g., "How long has the fever been?", "Is there any rash?").
+- Provide clear, bolded recommendations.
+- Always add a 🩺 emoji to your medical insights.
+- NEVER diagnose. ALWAYS recommend consulting a doctor for serious issues.
+
+OUTPUT FORMAT (Strict JSON only, no extra text):
 {
-  "intent": "<ONE_OF_ALLOWED_INTENTS>",
+  "intent": "emergency | find_doctors | vaccine_schedule | get_alerts | show_menu | general_chat",
   "data": {
-     "emergency_type": "<Description if emergency, else null>",
-     "hospital_name": "<Extracted hospital name, else null>",
-     "date_of_birth": "<YYYY-MM-DD if vaccine_schedule, else null>",
-     "confidence_score": <Float 0.0 to 1.0 representing your confidence in this classification>
+     "emergency_type": "string or null",
+     "hospital_name": "string or null",
+     "date_of_birth": "YYYY-MM-DD or null",
+     "confidence_score": 0.95
   },
-  "reply": "<Your empathetic, calm response if general_chat or emergency. Empty otherwise.>"
+  "reply": "LUSH, EMPATHETIC DOCTOR RESPONSE HERE. USE \\n\\n FOR SPACING."
 }
 """
 
+def get_main_menu() -> str:
+    """Returns a beautifully formatted WhatsApp main menu."""
+    return (
+        "👋 *Namaste! I am Arogya Mitra, your Digital Health Sahayaka.*\n\n"
+        "How can I help you today? Please choose an option or type your concern:\n\n"
+        "🚨 *1. EMERGENCY* — Type 'Emergency' or send your location for nearest hospitals.\n\n"
+        "🤒 *2. SYMPTOM CHECK* — Tell me how you feel (e.g., 'I have a fever').\n\n"
+        "💉 *3. VACCINATION* — Type 'Vaccine for baby born on 1st Jan 2024'.\n\n"
+        "🏥 *4. FIND HOSPITALS* — Share your location or type 'Find hospital'.\n\n"
+        "📰 *5. HEALTH ALERTS* — Type 'Latest health news'.\n\n"
+        "--- \n"
+        "👉 *Tip:* You can speak in *Hindi, Odia, or English!* I understand all of them. 🌍"
+    )
+
 def get_ai_response(user_id: str, user_message: str) -> AIStructuredResponse:
-    if not model or not redis_client:
+    if user_id not in memory_cache:
+        memory_cache[user_id] = []
+
+    # Quick handle for greetings/menu requests to save tokens
+    trigger_words = ["menu", "help", "hi", "hello", "नमस्ते", "hey"]
+    if user_message.lower().strip() in trigger_words:
+        return AIStructuredResponse(
+            intent=ChatIntent.SHOW_MENU,
+            reply=get_main_menu()
+        )
+
+    # ── 1. Try Gemini 2.5 Flash (Primary) ──
+    if gemini_client:
+        try:
+            logger.info(f"--- 🧠 Calling {GEMINI_MODEL} for {user_id}... ---")
+
+            contents = []
+            for turn in memory_cache[user_id][-6:]:
+                role = "model" if turn["role"] == "assistant" else "user"
+                contents.append(genai_types.Content(
+                    role=role,
+                    parts=[genai_types.Part(text=turn["content"])]
+                ))
+            contents.append(genai_types.Content(
+                role="user",
+                parts=[genai_types.Part(text=user_message)]
+            ))
+
+            response = gemini_client.models.generate_content(
+                model=GEMINI_MODEL,
+                contents=contents,
+                config=genai_types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    response_mime_type="application/json",
+                    temperature=0.7
+                )
+            )
+
+            raw_text = response.text.strip()
+            raw_text = re.sub(r'^```json\s*', '', raw_text)
+            raw_text = re.sub(r'\s*```$', '', raw_text)
+            raw_data = json.loads(raw_text, strict=False)
+            
+            # If AI decides to show menu
+            if raw_data.get("intent") == ChatIntent.SHOW_MENU:
+                raw_data["reply"] = get_main_menu()
+
+            structured = AIStructuredResponse(**raw_data)
+
+            memory_cache[user_id].append({"role": "user", "content": user_message})
+            memory_cache[user_id].append({"role": "assistant", "content": structured.reply})
+            if len(memory_cache[user_id]) > 20:
+                memory_cache[user_id] = memory_cache[user_id][-20:]
+
+            logger.info(f"--- ✅ {GEMINI_MODEL} Intent: {structured.intent.value} ---")
+            return structured
+
+        except Exception as e:
+            logger.error(f"!!! {GEMINI_MODEL} Error: {e} — switching to Groq !!!")
+
+    # ── 2. Groq Llama-3 Fallback ──
+    if not groq_client:
+        return AIStructuredResponse(intent=ChatIntent.GENERAL_CHAT, reply="AI service not ready.")
+
+    logger.info(f"--- 🔁 Calling Groq Llama-3 (fallback) for {user_id}... ---")
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for turn in memory_cache[user_id][-6:]:
+        messages.append({"role": turn["role"], "content": turn["content"]})
+    messages.append({"role": "user", "content": user_message})
+
+    try:
+        chat_completion = groq_client.chat.completions.create(
+            messages=messages,
+            model="llama-3.3-70b-versatile",
+            response_format={"type": "json_object"},
+            temperature=0.7,
+        )
+        raw_data = json.loads(chat_completion.choices[0].message.content)
+        
+        if raw_data.get("intent") == ChatIntent.SHOW_MENU:
+            raw_data["reply"] = get_main_menu()
+
+        structured = AIStructuredResponse(**raw_data)
+
+        memory_cache[user_id].append({"role": "user", "content": user_message})
+        memory_cache[user_id].append({"role": "assistant", "content": raw_data.get("reply", "")})
+        if len(memory_cache[user_id]) > 20:
+            memory_cache[user_id] = memory_cache[user_id][-20:]
+
+        logger.info(f"--- ✅ Groq Intent: {structured.intent.value} ---")
+        return structured
+
+    except Exception as e:
+        logger.error(f"!!! Groq Error: {e} !!!")
         return AIStructuredResponse(
             intent=ChatIntent.GENERAL_CHAT,
-            reply="I'm sorry, a core service is not configured correctly. Please check the logs."
+            reply="*🩺 Arogya Mitra here.*\n\nI am listening closely. Please tell me more about how you are feeling."
         )
-
-    history_key = f"history:{user_id}"
-    try:
-        conversation_history = json.loads(redis_client.get(history_key) or "[]")
-    except Exception as e:
-        logger.warning(f"--- Redis/JSON Error: {e}. Resetting history. ---")
-        conversation_history = []
-
-    # Add the new user message
-    conversation_history.append({"role": "user", "parts": [user_message]})
-
-    # Force JSON format and low temperature for determinism
-    generation_config = genai.types.GenerationConfig(
-        response_mime_type="application/json",
-        temperature=0.1
-    )
-
-    try:
-        chat = model.start_chat(history=conversation_history[:-1])
-        response = chat.send_message(
-            f"{SYSTEM_PROMPT}\n\nUser: {user_message}",
-            generation_config=generation_config
-        )
-        
-        # Strip markdown safely
-        raw_text = response.text.strip().removeprefix('```json').removeprefix('```').removesuffix('```').strip()
-        raw_data = json.loads(raw_text)
-        
-        structured_response = AIStructuredResponse(**raw_data)
-        logger.info(f"Route: {structured_response.intent.value} | Confidence: {structured_response.data.confidence_score}")
-
-        # Add AI reply to history
-        conversation_history.append({"role": "model", "parts": [str(raw_data)]})
-        short_history = conversation_history[-6:]
-        redis_client.set(history_key, json.dumps(short_history))
-        redis_client.expire(history_key, 3600)
-
-        return structured_response
-
-    except json.JSONDecodeError as parse_err:
-        logger.error(f"JSON Parse Error. Fallback triggered. Raw Output: {response.text}")
-    except ValueError as val_err:
-         logger.error(f"Pydantic Validation Error: {val_err}. Fallback triggered.")
-    except Exception as e:
-        logger.error(f"Gemini API Error: {e}")
-
-    # Fallback response
-    return AIStructuredResponse(
-        intent=ChatIntent.GENERAL_CHAT,
-        reply="I'm sorry, I'm having difficulty processing that right now. Could you rephrase your question?"
-    )

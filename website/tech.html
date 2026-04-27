@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Technology — JeevanRekha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .tech-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.5rem; margin-top:4rem; }
+    .tc { border-radius:20px; padding:2.5rem; }
+    .tc-light { background:var(--cream); border:1px solid var(--line); }
+    .tc-dark { background:var(--ink); }
+    .tc-accent { background:linear-gradient(135deg,#ede9fe,#ccfbf1); border:1px solid rgba(99,102,241,.2); }
+    .tc-icon { font-size:2rem; margin-bottom:1.25rem; display:block; }
+    .tc h3 { font-size:1.15rem; font-weight:700; margin-bottom:1.1rem; }
+    .tc-dark h3 { color:#fff; }
+    .tc-items { list-style:none; display:flex; flex-direction:column; gap:.6rem; }
+    .tc-item { display:flex; align-items:center; gap:.75rem; font-size:.88rem; }
+    .tc-dark .tc-item { color:rgba(255,255,255,.7); }
+    .tc-light .tc-item, .tc-accent .tc-item { color:var(--muted); }
+    .tc-badge { font-size:.72rem; font-weight:700; padding:.22rem .55rem; border-radius:6px; flex-shrink:0; }
+    .badge-purple { background:rgba(99,102,241,.12); color:var(--indigo); }
+    .badge-dark { background:rgba(255,255,255,.12); color:rgba(255,255,255,.8); }
+    .badge-teal { background:rgba(20,184,166,.12); color:var(--teal); }
+
+    .pipeline { background:var(--ink); border-radius:24px; padding:3rem; margin-top:4rem; }
+    .pipe-steps { display:flex; align-items:center; gap:0; overflow-x:auto; padding-bottom:1rem; }
+    .pipe-step { display:flex; flex-direction:column; align-items:center; min-width:130px; }
+    .pipe-box { width:80px; height:80px; border-radius:16px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.2rem; border:1px solid rgba(255,255,255,.12); font-size:1.6rem; background:rgba(255,255,255,.06); }
+    .pipe-box.highlight { background:var(--grad); border:none; box-shadow:0 4px 20px rgba(99,102,241,.4); }
+    .pipe-label { font-size:.7rem; color:rgba(255,255,255,.5); text-align:center; margin-top:.6rem; line-height:1.4; max-width:90px; }
+    .pipe-arrow { font-size:1.5rem; color:rgba(255,255,255,.2); margin:0 .5rem; flex-shrink:0; margin-bottom:2rem; }
+
+    .safety-banner { background:linear-gradient(135deg,#fef3c7,#fde68a); border-radius:20px; padding:2.5rem 3rem; margin-top:4rem; display:flex; align-items:center; gap:2rem; }
+    .safety-icon { font-size:3rem; flex-shrink:0; }
+    .safety-rules { list-style:none; display:grid; grid-template-columns:1fr 1fr; gap:.6rem .5rem; margin-top:.75rem; }
+    .safety-rules li { font-size:.88rem; color:#92400e; display:flex; align-items:center; gap:.4rem; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">🩺 JeevanRekha</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="experience.html">Experience</a></li>
+      <li><a href="works.html">How It Works</a></li>
+      <li><a href="tech.html">Technology</a></li>
+      <li><a href="impact.html">Impact</a></li>
+    </ul>
+    <div class="nav-ctas">
+      <a href="http://localhost:5173" target="_blank" class="nav-pill nav-pill-outline">🎙️ Voice App</a>
+      <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="nav-pill nav-pill-fill">💬 WhatsApp</a>
+    </div>
+  </div>
+</nav>
+
+<section style="padding:140px 2rem 60px;text-align:center;background:#fff">
+  <div class="container reveal">
+    <span class="eyebrow">Technology</span>
+    <h1 class="headline-xl" style="margin-bottom:1.25rem">World-class<br/><span class="grad-text">infrastructure.</span></h1>
+    <p class="body-lg" style="max-width:480px;margin:0 auto">Built on Google Cloud, FastAPI, and Gemini AI — production-grade from day one.</p>
+  </div>
+</section>
+
+<section class="section-sm">
+  <div class="container">
+    <div class="tech-grid reveal">
+      <div class="tc tc-dark">
+        <span class="tc-icon">🐍</span>
+        <h3>Backend Core</h3>
+        <ul class="tc-items">
+          <li><span class="tc-badge badge-dark">FastAPI</span> High-performance Python ASGI framework</li>
+          <li><span class="tc-badge badge-dark">PostgreSQL</span> Relational DB with PostGIS geospatial extension</li>
+          <li><span class="tc-badge badge-dark">SQLAlchemy</span> ORM + Alembic migrations</li>
+          <li><span class="tc-badge badge-dark">Redis</span> Session history cache (1hr TTL)</li>
+          <li><span class="tc-badge badge-dark">CORS</span> JSON API bridge for voice frontend</li>
+        </ul>
+      </div>
+      <div class="tc tc-accent">
+        <span class="tc-icon">🧠</span>
+        <h3>AI & Intelligence</h3>
+        <ul class="tc-items">
+          <li><span class="tc-badge badge-purple">Gemini 2.5 Flash</span> Intent classification + triage</li>
+          <li><span class="tc-badge badge-purple">Gemini Live Audio</span> Real-time voice streaming</li>
+          <li><span class="tc-badge badge-purple">Google Translate</span> 50+ language auto-detection</li>
+          <li><span class="tc-badge badge-purple">Google Places API</span> Hospital geosearch (10km radius)</li>
+          <li><span class="tc-badge badge-purple">Structured JSON</span> Forced schema output from Gemini</li>
+        </ul>
+      </div>
+      <div class="tc tc-light">
+        <span class="tc-icon">📡</span>
+        <h3>Channels & Delivery</h3>
+        <ul class="tc-items">
+          <li><span class="tc-badge badge-purple">Twilio</span> WhatsApp Messaging API + Webhooks</li>
+          <li><span class="tc-badge badge-purple">Firebase Auth</span> Anonymous sign-in for voice users</li>
+          <li><span class="tc-badge badge-purple">Firestore</span> Persistent preference storage</li>
+          <li><span class="tc-badge badge-purple">React + Vite</span> Voice frontend (TypeScript)</li>
+          <li><span class="tc-badge badge-purple">ngrok / Render</span> Tunnel + cloud deployment</li>
+        </ul>
+      </div>
+      <div class="tc tc-light">
+        <span class="tc-icon">🗄️</span>
+        <h3>Data Architecture</h3>
+        <ul class="tc-items">
+          <li><span class="tc-badge badge-teal">Users</span> Phone number → preference mapping</li>
+          <li><span class="tc-badge badge-teal">Hospitals</span> PostGIS POINT geometry for spatial search</li>
+          <li><span class="tc-badge badge-teal">Doctors</span> Specialty indexed, FK to hospital</li>
+          <li><span class="tc-badge badge-teal">Vaccines</span> WHO schedule by week range</li>
+          <li><span class="tc-badge badge-teal">Appointments</span> User × Doctor × Hospital × Time</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- AI Pipeline -->
+    <div class="pipeline reveal delay-2">
+      <h3 style="color:#fff;font-size:1.15rem;font-weight:700;margin-bottom:2rem">AI Orchestration Pipeline</h3>
+      <div class="pipe-steps">
+        <div class="pipe-step"><div class="pipe-box">📩<small style="font-size:.55rem;color:rgba(255,255,255,.5)">Input</small></div><div class="pipe-label">WhatsApp / Voice</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-box">🌍<small style="font-size:.55rem;color:rgba(255,255,255,.5)">Translate</small></div><div class="pipe-label">Google Translate detect + translate</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-box highlight">🧠<small style="font-size:.55rem;color:rgba(255,255,255,.8)">Gemini</small></div><div class="pipe-label">Intent + structured JSON output</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-box">⚡<small style="font-size:.55rem;color:rgba(255,255,255,.5)">Route</small></div><div class="pipe-label">process_query.py orchestrator</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-box">🌍<small style="font-size:.55rem;color:rgba(255,255,255,.5)">Translate</small></div><div class="pipe-label">Translate back to user language</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pipe-box">✅<small style="font-size:.55rem;color:rgba(255,255,255,.5)">Deliver</small></div><div class="pipe-label">TwiML XML or JSON response</div></div>
+      </div>
+    </div>
+
+    <!-- Safety -->
+    <div class="safety-banner reveal delay-3">
+      <div class="safety-icon">🛡️</div>
+      <div>
+        <h3 style="font-size:1.15rem;font-weight:700;color:#92400e;margin-bottom:.35rem">Safety by Design</h3>
+        <p style="font-size:.9rem;color:#b45309;margin-bottom:.75rem">Every response passes through medical safety guardrails.</p>
+        <ul class="safety-rules">
+          <li>🚫 No confident medical diagnosis</li>
+          <li>🚫 No prescription or dosage changes</li>
+          <li>🚫 No free-form lab interpretation</li>
+          <li>✅ Emergency → 108 escalation first</li>
+          <li>✅ Advisory guidance only</li>
+          <li>✅ No personal health data retained</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span class="footer-logo">🩺 JeevanRekha</span>
+    <div class="footer-links">
+      <a href="index.html">Home</a><a href="experience.html">Experience</a>
+      <a href="works.html">How It Works</a><a href="tech.html">Technology</a><a href="impact.html">Impact</a>
+    </div>
+    <p>Google Solution Challenge 2025 · UN SDG 3</p>
+  </div>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>
