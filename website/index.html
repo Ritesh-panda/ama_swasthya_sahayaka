@@ -1,270 +1,567 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>JeevanRekha — Intelligent Health Protocol</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="styles.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
   <style>
     /* PAGE-SPECIFIC */
-    .hero { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 120px 2rem 80px; background: #fff; position: relative; overflow: hidden; }
-    .hero::before { content:''; position:absolute; top:-200px; left:50%; transform:translateX(-50%); width:900px; height:900px; background:radial-gradient(ellipse at center, rgba(99,102,241,.08) 0%, transparent 70%); pointer-events:none; }
-    .hero-kicker { display:inline-flex; align-items:center; gap:.5rem; padding:.4rem .9rem; border-radius:50px; background:rgba(99,102,241,.08); color:var(--indigo); font-size:.8rem; font-weight:600; margin-bottom:2rem; }
-    .dot-live { width:7px;height:7px;background:#22c55e;border-radius:50%;animation:pulse 2s infinite; }
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    .hero-h1 { margin-bottom:1.5rem; }
-    .hero-sub { font-size:1.35rem; color:var(--muted); max-width:600px; margin:0 auto 3rem; line-height:1.7; }
-    .hero-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-bottom:3.5rem; }
-    .hero-tags { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; }
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 2rem 80px;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 900px;
+      background: radial-gradient(ellipse at center, rgba(99, 102, 241, .08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .4rem .9rem;
+      border-radius: 50px;
+      background: rgba(99, 102, 241, .08);
+      color: var(--indigo);
+      font-size: .8rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+
+    .dot-live {
+      width: 7px;
+      height: 7px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
+
+    .hero-h1 {
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-sub {
+      font-size: 1.35rem;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      line-height: 1.7;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 3.5rem;
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: .6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
     /* PROBLEM */
-    .problem-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:2px; background:var(--line); border:2px solid var(--line); border-radius:20px; overflow:hidden; margin-top:4rem; }
-    .problem-item { background:#fff; padding:3rem 2.5rem; }
-    .pi-icon { font-size:2.5rem; margin-bottom:1.25rem; }
-    .pi-name { font-size:.75rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:.5rem; }
-    .pi-quote { font-size:1.05rem; font-weight:500; color:var(--ink); line-height:1.6; margin-bottom:.75rem; }
-    .pi-tag { font-size:.78rem; color:var(--muted); }
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--line);
+      border: 2px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 4rem;
+    }
+
+    .problem-item {
+      background: #fff;
+      padding: 3rem 2.5rem;
+    }
+
+    .pi-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .pi-name {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .5rem;
+    }
+
+    .pi-quote {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: .75rem;
+    }
+
+    .pi-tag {
+      font-size: .78rem;
+      color: var(--muted);
+    }
 
     /* CHANNELS */
-    .ch-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:4rem; }
-    .ch-card { border-radius:24px; padding:3rem; overflow:hidden; }
-    .ch-wp { background:var(--ink); color:#fff; }
-    .ch-voice { background:var(--cream); }
-    .ch-label { font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; opacity:.5; margin-bottom:1.5rem; display:block; }
-    .ch-icon { font-size:3rem; margin-bottom:1.5rem; display:block; }
-    .ch-card h2 { font-size:1.8rem; font-weight:700; margin-bottom:1rem; }
-    .ch-wp h2 { color:#fff; }
-    .ch-card p { font-size:1rem; line-height:1.7; margin-bottom:2rem; }
-    .ch-wp p { color:rgba(255,255,255,.65); }
-    .ch-voice p { color:var(--muted); }
-    .ch-features { list-style:none; display:flex; flex-direction:column; gap:.5rem; margin-bottom:2.5rem; }
-    .ch-features li { font-size:.9rem; display:flex; align-items:center; gap:.5rem; }
-    .ch-wp .ch-features li { color:rgba(255,255,255,.8); }
-    .ch-voice .ch-features li { color:var(--muted); }
+    .ch-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 4rem;
+    }
+
+    .ch-card {
+      border-radius: 24px;
+      padding: 3rem;
+      overflow: hidden;
+    }
+
+    .ch-wp {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .ch-voice {
+      background: var(--cream);
+    }
+
+    .ch-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      opacity: .5;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    .ch-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      display: block;
+    }
+
+    .ch-card h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .ch-wp h2 {
+      color: #fff;
+    }
+
+    .ch-card p {
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .ch-wp p {
+      color: rgba(255, 255, 255, .65);
+    }
+
+    .ch-voice p {
+      color: var(--muted);
+    }
+
+    .ch-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .ch-features li {
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .ch-wp .ch-features li {
+      color: rgba(255, 255, 255, .8);
+    }
+
+    .ch-voice .ch-features li {
+      color: var(--muted);
+    }
 
     /* STATS BAR */
-    .stats-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:0; background:var(--ink); border-radius:24px; overflow:hidden; }
-    .stat-item { padding:3rem 2rem; text-align:center; border-right:1px solid rgba(255,255,255,.08); }
-    .stat-item:last-child { border-right:none; }
-    .stat-n { font-size:3rem; font-weight:800; letter-spacing:-.03em; color:#fff; }
-    .stat-l { font-size:.85rem; color:rgba(255,255,255,.5); margin-top:.35rem; }
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+      background: var(--ink);
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    .stat-item {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-right: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .stat-item:last-child {
+      border-right: none;
+    }
+
+    .stat-n {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: #fff;
+    }
+
+    .stat-l {
+      font-size: .85rem;
+      color: rgba(255, 255, 255, .5);
+      margin-top: .35rem;
+    }
 
     /* FLOW */
-    .flow-row { display:flex; align-items:center; justify-content:center; gap:1.5rem; flex-wrap:wrap; padding:4rem; background:var(--cream); border-radius:24px; margin-top:4rem; }
-    .flow-node { text-align:center; }
-    .fn-box { width:100px; height:100px; border-radius:22px; background:#fff; border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.3rem; margin:0 auto .75rem; box-shadow:0 4px 16px rgba(0,0,0,.05); transition:all .3s; font-size:1.8rem; }
-    .fn-box:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,.1); }
-    .fn-box.center { background:var(--grad); border:none; }
-    .fn-label { font-size:.78rem; font-weight:600; color:var(--muted); }
-    .fn-sub { font-size:.68rem; color:var(--faint,#9ca3af); }
-    .flow-arrow { font-size:1.5rem; color:var(--line); }
-    .flow-col { display:flex; flex-direction:column; gap:1rem; }
+    .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      padding: 4rem;
+      background: var(--cream);
+      border-radius: 24px;
+      margin-top: 4rem;
+    }
+
+    .flow-node {
+      text-align: center;
+    }
+
+    .fn-box {
+      width: 100px;
+      height: 100px;
+      border-radius: 22px;
+      background: #fff;
+      border: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .3rem;
+      margin: 0 auto .75rem;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .05);
+      transition: all .3s;
+      font-size: 1.8rem;
+    }
+
+    .fn-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .1);
+    }
+
+    .fn-box.center {
+      background: var(--grad);
+      border: none;
+    }
+
+    .fn-label {
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .fn-sub {
+      font-size: .68rem;
+      color: var(--faint, #9ca3af);
+    }
+
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: var(--line);
+    }
+
+    .flow-col {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
   </style>
 </head>
+
 <body>
 
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo">🩺 JeevanRekha</a>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="experience.html">Experience</a></li>
-      <li><a href="works.html">How It Works</a></li>
-      <li><a href="tech.html">Technology</a></li>
-      <li><a href="impact.html">Impact</a></li>
-    </ul>
-    <div class="nav-ctas">
-      <a href="http://localhost:5173" target="_blank" class="nav-pill nav-pill-outline">🎙️ Voice App</a>
-      <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="nav-pill nav-pill-fill">💬 WhatsApp</a>
-    </div>
-  </div>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="container reveal">
-    <div class="hero-kicker"><div class="dot-live"></div> Google Solution Challenge 2025 · UN SDG 3</div>
-    <h1 class="headline-xl hero-h1">
-      Healthcare for every<br/>
-      <span class="grad-text">Indian. In every language.</span>
-    </h1>
-    <p class="hero-sub">One AI. WhatsApp + Voice. Instant medical guidance in your mother tongue — free, for everyone.</p>
-    <div class="hero-btns">
-      <a href="experience.html" class="btn btn-grad">Try Live Demo →</a>
-      <a href="http://localhost:5173" target="_blank" class="btn btn-dark">🎙️ Launch Voice App</a>
-      <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="btn btn-ghost">💬 Open WhatsApp Bot</a>
-    </div>
-    <div class="hero-tags">
-      <span class="tag">8 Indian Languages</span>
-      <span class="tag">Real-time Gemini AI</span>
-      <span class="tag">Works on 2G</span>
-      <span class="tag">Emergency Detection</span>
-      <span class="tag">₹0 for Users</span>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- PROBLEM -->
-<section class="section">
-  <div class="container">
-    <div class="reveal text-center">
-      <span class="eyebrow">The Problem</span>
-      <h2 class="headline-lg">1.4 billion people.<br/>Healthcare still out of reach.</h2>
-      <p class="body-lg" style="max-width:540px;margin:1.5rem auto 0">Real people. Real barriers. Right now.</p>
-    </div>
-    <div class="problem-grid reveal delay-2">
-      <div class="problem-item">
-        <div class="pi-icon">👴</div>
-        <div class="pi-name">Language Barrier</div>
-        <div class="pi-quote">"मुझे डॉक्टर से बात करनी है पर मैं English नहीं जानता।"</div>
-        <div class="pi-tag">Ramesh, 67 — Village in Odisha</div>
-      </div>
-      <div class="problem-item">
-        <div class="pi-icon">👩‍👦</div>
-        <div class="pi-name">Information Gap</div>
-        <div class="pi-quote">"My baby's vaccination is due but I lost the schedule card."</div>
-        <div class="pi-tag">Priya, 24 — Rural Bihar</div>
-      </div>
-      <div class="problem-item">
-        <div class="pi-icon">🚛</div>
-        <div class="pi-name">Emergency Panic</div>
-        <div class="pi-quote">"Chest pain on the highway. I panicked. Didn't know who to call."</div>
-        <div class="pi-tag">Suresh, 45 — Truck Driver, NH-16</div>
-      </div>
-      <div class="problem-item">
-        <div class="pi-icon">👵</div>
-        <div class="pi-name">Digital Illiteracy</div>
-        <div class="pi-quote">"I cannot read. Every health app is completely useless to me."</div>
-        <div class="pi-tag">Kamala, 72 — Telangana</div>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">🩺 JeevanRekha</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="experience.html">Experience</a></li>
+        <li><a href="works.html">How It Works</a></li>
+        <li><a href="tech.html">Technology</a></li>
+        <li><a href="impact.html">Impact</a></li>
+      </ul>
+      <div class="nav-ctas">
+        <a href="http://localhost:5173" target="_blank" class="nav-pill nav-pill-outline">🎙️ Voice App</a>
+        <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="nav-pill nav-pill-fill">💬
+          WhatsApp</a>
       </div>
     </div>
-  </div>
-</section>
+  </nav>
 
-<!-- STATS -->
-<section class="section-sm cream-section">
-  <div class="container">
-    <div class="stats-bar reveal">
-      <div class="stat-item"><div class="stat-n grad-text">780+</div><div class="stat-l">Languages in India</div></div>
-      <div class="stat-item"><div class="stat-n grad-text">65%</div><div class="stat-l">Rural population</div></div>
-      <div class="stat-item"><div class="stat-n grad-text">300M</div><div class="stat-l">Low-literacy adults</div></div>
-      <div class="stat-item"><div class="stat-n grad-text">₹0</div><div class="stat-l">Cost to user</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- SOLUTION -->
-<section class="section">
-  <div class="container">
-    <div class="reveal text-center">
-      <span class="eyebrow">The Solution</span>
-      <h2 class="headline-lg">Meet people<br/>where they are.</h2>
-    </div>
-    <div class="ch-grid reveal delay-2">
-      <div class="ch-card ch-wp">
-        <span class="ch-label">Channel 01</span>
-        <span class="ch-icon">💬</span>
-        <h2>WhatsApp Bot</h2>
-        <p>No app. No English required. Works on any phone — even basic 2G handsets. Just text in your language.</p>
-        <ul class="ch-features">
-          <li>✦ Auto-translates 50+ languages</li>
-          <li>✦ Symptom triage and guidance</li>
-          <li>✦ GPS → nearest hospitals (10km)</li>
-          <li>✦ Vaccination schedule calculator</li>
-          <li>✦ Emergency detection → calls 108</li>
-        </ul>
-        <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="btn btn-grad btn-sm">Open WhatsApp Bot →</a>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container reveal">
+      <div class="hero-kicker">
+        <div class="dot-live"></div> Google Solution Challenge 2025 · UN SDG 3
       </div>
-      <div class="ch-card ch-voice">
-        <span class="ch-label">Channel 02</span>
-        <span class="ch-icon">🎙️</span>
-        <h2>JeevanRekha Voice</h2>
-        <p>A browser-based call experience. Speak naturally — AI detects your state, responds in your language.</p>
-        <ul class="ch-features">
-          <li>✦ Auto-detects location → language</li>
-          <li>✦ Hindi, Telugu, Marathi, Tamil…</li>
-          <li>✦ Real-time voice conversation</li>
-          <li>✦ Safe medical guardrails built-in</li>
-          <li>✦ Works on iPhone, Android, desktop</li>
-        </ul>
-        <a href="http://localhost:5173" target="_blank" class="btn btn-dark btn-sm">Launch Voice App →</a>
+      <h1 class="headline-xl hero-h1">
+        Healthcare for every<br />
+        <span class="grad-text">Indian. In every language.</span>
+      </h1>
+      <p class="hero-sub">One AI. WhatsApp + Voice. Instant medical guidance in your mother tongue — free, for everyone.
+      </p>
+      <div class="hero-btns">
+        <a href="experience.html" class="btn btn-grad">Try Live Demo →</a>
+        <a href="https://jeevanrekha-voice.vercel.app/" target="_blank" class="btn btn-dark">🎙️ Launch Voice App</a>
+        <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="btn btn-ghost">💬 Open
+          WhatsApp Bot</a>
+      </div>
+      <div class="hero-tags">
+        <span class="tag">8 Indian Languages</span>
+        <span class="tag">Real-time Gemini AI</span>
+        <span class="tag">Works on 2G</span>
+        <span class="tag">Emergency Detection</span>
+        <span class="tag">₹0 for Users</span>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ONE AI BRAIN -->
-<section class="section dark-section">
-  <div class="container">
-    <div class="reveal text-center">
-      <span class="eyebrow">Core Architecture</span>
-      <h2 class="headline-lg">Two channels.<br/>One intelligent brain.</h2>
-      <p class="body-lg" style="max-width:500px;margin:1.5rem auto 0">All logic lives in a single FastAPI orchestrator — consistent, safe, scalable.</p>
-    </div>
-    <div class="flow-row reveal delay-2" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">
-      <div class="flow-col">
-        <div class="flow-node">
-          <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">💬<small style="font-size:.6rem;color:rgba(255,255,255,.5)">WhatsApp</small></div>
-          <div class="fn-label" style="color:rgba(255,255,255,.5)">Twilio</div>
+  <div class="divider"></div>
+
+  <!-- PROBLEM -->
+  <section class="section">
+    <div class="container">
+      <div class="reveal text-center">
+        <span class="eyebrow">The Problem</span>
+        <h2 class="headline-lg">1.4 billion people.<br />Healthcare still out of reach.</h2>
+        <p class="body-lg" style="max-width:540px;margin:1.5rem auto 0">Real people. Real barriers. Right now.</p>
+      </div>
+      <div class="problem-grid reveal delay-2">
+        <div class="problem-item">
+          <div class="pi-icon">👴</div>
+          <div class="pi-name">Language Barrier</div>
+          <div class="pi-quote">"मुझे डॉक्टर से बात करनी है पर मैं English नहीं जानता।"</div>
+          <div class="pi-tag">Ramesh, 67 — Village in Odisha</div>
         </div>
-        <div class="flow-node">
-          <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🎙️<small style="font-size:.6rem;color:rgba(255,255,255,.5)">Voice</small></div>
-          <div class="fn-label" style="color:rgba(255,255,255,.5)">Firebase</div>
+        <div class="problem-item">
+          <div class="pi-icon">👩‍👦</div>
+          <div class="pi-name">Information Gap</div>
+          <div class="pi-quote">"My baby's vaccination is due but I lost the schedule card."</div>
+          <div class="pi-tag">Priya, 24 — Rural Bihar</div>
+        </div>
+        <div class="problem-item">
+          <div class="pi-icon">🚛</div>
+          <div class="pi-name">Emergency Panic</div>
+          <div class="pi-quote">"Chest pain on the highway. I panicked. Didn't know who to call."</div>
+          <div class="pi-tag">Suresh, 45 — Truck Driver, NH-16</div>
+        </div>
+        <div class="problem-item">
+          <div class="pi-icon">👵</div>
+          <div class="pi-name">Digital Illiteracy</div>
+          <div class="pi-quote">"I cannot read. Every health app is completely useless to me."</div>
+          <div class="pi-tag">Kamala, 72 — Telangana</div>
         </div>
       </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">
-        <div class="fn-box center">⚡</div>
-        <div class="fn-label" style="color:rgba(255,255,255,.7)">FastAPI Backend</div>
-        <div class="fn-sub" style="color:rgba(255,255,255,.4)">process_query.py</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">
-        <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🧠</div>
-        <div class="fn-label" style="color:rgba(255,255,255,.7)">Gemini 2.5 Flash</div>
-        <div class="fn-sub" style="color:rgba(255,255,255,.4)">Intent + Triage</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-col">
-        <div class="flow-node"><div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🚨</div><div class="fn-label" style="color:rgba(255,255,255,.5)">Emergency</div></div>
-        <div class="flow-node"><div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🏥</div><div class="fn-label" style="color:rgba(255,255,255,.5)">Hospitals</div></div>
-        <div class="flow-node"><div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">💉</div><div class="fn-label" style="color:rgba(255,255,255,.5)">Vaccines</div></div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="section-sm cream-section">
+    <div class="container">
+      <div class="stats-bar reveal">
+        <div class="stat-item">
+          <div class="stat-n grad-text">780+</div>
+          <div class="stat-l">Languages in India</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-n grad-text">65%</div>
+          <div class="stat-l">Rural population</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-n grad-text">300M</div>
+          <div class="stat-l">Low-literacy adults</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-n grad-text">₹0</div>
+          <div class="stat-l">Cost to user</div>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- CTA -->
-<section class="section text-center">
-  <div class="container-narrow reveal">
-    <span class="eyebrow">Try It Now</span>
-    <h2 class="headline-lg">Experience it.<br/><span class="grad-text">Right now.</span></h2>
-    <p class="body-lg" style="margin:1.5rem 0 3rem">No setup. No English. No barriers. Click below.</p>
-    <div class="hero-btns">
-      <a href="experience.html" class="btn btn-grad">Try Interactive Demo →</a>
-      <a href="http://localhost:5173" target="_blank" class="btn btn-dark">🎙️ Voice App</a>
-      <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="btn btn-ghost">💬 WhatsApp Bot</a>
+  <!-- SOLUTION -->
+  <section class="section">
+    <div class="container">
+      <div class="reveal text-center">
+        <span class="eyebrow">The Solution</span>
+        <h2 class="headline-lg">Meet people<br />where they are.</h2>
+      </div>
+      <div class="ch-grid reveal delay-2">
+        <div class="ch-card ch-wp">
+          <span class="ch-label">Channel 01</span>
+          <span class="ch-icon">💬</span>
+          <h2>WhatsApp Bot</h2>
+          <p>No app. No English required. Works on any phone — even basic 2G handsets. Just text in your language.</p>
+          <ul class="ch-features">
+            <li>✦ Auto-translates 50+ languages</li>
+            <li>✦ Symptom triage and guidance</li>
+            <li>✦ GPS → nearest hospitals (10km)</li>
+            <li>✦ Vaccination schedule calculator</li>
+            <li>✦ Emergency detection → calls 108</li>
+          </ul>
+          <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank"
+            class="btn btn-grad btn-sm">Open WhatsApp Bot →</a>
+        </div>
+        <div class="ch-card ch-voice">
+          <span class="ch-label">Channel 02</span>
+          <span class="ch-icon">🎙️</span>
+          <h2>JeevanRekha Voice</h2>
+          <p>A browser-based call experience. Speak naturally — AI detects your state, responds in your language.</p>
+          <ul class="ch-features">
+            <li>✦ Auto-detects location → language</li>
+            <li>✦ Hindi, Telugu, Marathi, Tamil…</li>
+            <li>✦ Real-time voice conversation</li>
+            <li>✦ Safe medical guardrails built-in</li>
+            <li>✦ Works on iPhone, Android, desktop</li>
+          </ul>
+          <a href="http://localhost:5173" target="_blank" class="btn btn-dark btn-sm">Launch Voice App →</a>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<footer>
-  <div class="container">
-    <span class="footer-logo">🩺 JeevanRekha</span>
-    <div class="footer-links">
-      <a href="index.html">Home</a>
-      <a href="experience.html">Experience</a>
-      <a href="works.html">How It Works</a>
-      <a href="tech.html">Technology</a>
-      <a href="impact.html">Impact</a>
+  <!-- ONE AI BRAIN -->
+  <section class="section dark-section">
+    <div class="container">
+      <div class="reveal text-center">
+        <span class="eyebrow">Core Architecture</span>
+        <h2 class="headline-lg">Two channels.<br />One intelligent brain.</h2>
+        <p class="body-lg" style="max-width:500px;margin:1.5rem auto 0">All logic lives in a single FastAPI orchestrator
+          — consistent, safe, scalable.</p>
+      </div>
+      <div class="flow-row reveal delay-2"
+        style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);">
+        <div class="flow-col">
+          <div class="flow-node">
+            <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">💬<small
+                style="font-size:.6rem;color:rgba(255,255,255,.5)">WhatsApp</small></div>
+            <div class="fn-label" style="color:rgba(255,255,255,.5)">Twilio</div>
+          </div>
+          <div class="flow-node">
+            <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🎙️<small
+                style="font-size:.6rem;color:rgba(255,255,255,.5)">Voice</small></div>
+            <div class="fn-label" style="color:rgba(255,255,255,.5)">Firebase</div>
+          </div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-box center">⚡</div>
+          <div class="fn-label" style="color:rgba(255,255,255,.7)">FastAPI Backend</div>
+          <div class="fn-sub" style="color:rgba(255,255,255,.4)">process_query.py</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🧠</div>
+          <div class="fn-label" style="color:rgba(255,255,255,.7)">Gemini 2.5 Flash</div>
+          <div class="fn-sub" style="color:rgba(255,255,255,.4)">Intent + Triage</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-col">
+          <div class="flow-node">
+            <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🚨</div>
+            <div class="fn-label" style="color:rgba(255,255,255,.5)">Emergency</div>
+          </div>
+          <div class="flow-node">
+            <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">🏥</div>
+            <div class="fn-label" style="color:rgba(255,255,255,.5)">Hospitals</div>
+          </div>
+          <div class="flow-node">
+            <div class="fn-box" style="background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);">💉</div>
+            <div class="fn-label" style="color:rgba(255,255,255,.5)">Vaccines</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <p>Google Solution Challenge 2025 · UN SDG 3: Good Health & Well-being</p>
-    <p style="margin-top:.5rem;opacity:.4">© 2025 MIT License</p>
-  </div>
-</footer>
+  </section>
 
-<script src="script.js"></script>
+  <!-- CTA -->
+  <section class="section text-center">
+    <div class="container-narrow reveal">
+      <span class="eyebrow">Try It Now</span>
+      <h2 class="headline-lg">Experience it.<br /><span class="grad-text">Right now.</span></h2>
+      <p class="body-lg" style="margin:1.5rem 0 3rem">No setup. No English. No barriers. Click below.</p>
+      <div class="hero-btns">
+        <a href="experience.html" class="btn btn-grad">Try Interactive Demo →</a>
+        <a href="http://localhost:5173" target="_blank" class="btn btn-dark">🎙️ Voice App</a>
+        <a href="https://wa.me/14155238886?text=join+carefully-throat" target="_blank" class="btn btn-ghost">💬 WhatsApp
+          Bot</a>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <span class="footer-logo">🩺 JeevanRekha</span>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="experience.html">Experience</a>
+        <a href="works.html">How It Works</a>
+        <a href="tech.html">Technology</a>
+        <a href="impact.html">Impact</a>
+      </div>
+      <p>Google Solution Challenge 2025 · UN SDG 3: Good Health & Well-being</p>
+      <p style="margin-top:.5rem;opacity:.4">© 2025 MIT License</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
+
 </html>
