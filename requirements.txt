@@ -7,6 +7,8 @@ python-multipart==0.0.12
 sqlalchemy==2.0.36
 psycopg2-binary==2.9.10
 alembic==1.14.0
+geoalchemy2==0.15.2
+redis==5.1.1
 
 # ── Configuration ────────────────────────────────────────────────────
 pydantic==2.9.2
