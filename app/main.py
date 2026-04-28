@@ -1,9 +1,13 @@
 # File: app/main.py
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.api.v1 import chat_routes, process_routes
+
+# Ensure static directories exist (critical for Docker containers)
+os.makedirs("app/static/audio", exist_ok=True)
 
 app = FastAPI(
     title="JeevanRekha AI",
