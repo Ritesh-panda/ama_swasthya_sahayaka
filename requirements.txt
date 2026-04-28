@@ -30,3 +30,4 @@ indic-nlp-library==0.92
 # ── Utilities ────────────────────────────────────────────────────────
 python-dateutil==2.9.0.post0
 beautifulsoup4==4.12.3
+newsapi-python==0.2.7
