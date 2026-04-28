@@ -19,7 +19,7 @@ const firebaseConfig = {
 
 // 🚨 Strict validation (NEW)
 if (!firebaseConfig.apiKey) {
-  throw new Error("❌ Firebase API KEY is missing. Check your .env file.");
+  console.error("❌ Firebase API KEY is missing. You must set VITE_FIREBASE_API_KEY in your .env or Vercel dashboard.");
 }
 
 export const hasFirebaseConfig = [
