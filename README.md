@@ -697,14 +697,8 @@ npm run dev
 
 ---
 
-## Authors
 
-| Name | Role |
-|---|---|
-| **Ritesh Panda** | Backend Engineer — FastAPI, PostgreSQL, AI Orchestration, Twilio |
-| **Arpit Mangaraj** | Frontend Engineer — React, Firebase, Gemini Live Voice, UI/UX |
 
----
 
 ## License
 
