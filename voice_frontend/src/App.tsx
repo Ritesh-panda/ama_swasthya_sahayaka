@@ -46,6 +46,7 @@ export default function App() {
   const [aiStatus, setAiStatus] = useState<"Listening..." | "Thinking..." | "Speaking...">("Listening...");
   const [showLangModal, setShowLangModal] = useState(false);
   const [showExamples, setShowExamples] = useState(false);
+  const [showHealthGuide, setShowHealthGuide] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [pendingLang, setPendingLang] = useState<LanguageCode>("hi-IN");
 
@@ -287,7 +288,11 @@ export default function App() {
 
       {/* Info Cards */}
       <div className="info-cards-row">
-        <div className="info-card" onClick={() => { setPendingLang(selectedLanguageCode); setShowLangModal(true); }}>
+        <div className="info-card" onClick={() => {
+          setShowExamples(false); // close examples first
+          setPendingLang(selectedLanguageCode);
+          setShowLangModal(true);
+        }}>
           <div className="info-card-label">🌐 Language</div>
           <div className="info-card-value">{selectedLanguage.nativeLabel}</div>
           <div className="info-card-sub">Change →</div>
@@ -337,8 +342,22 @@ export default function App() {
             className="sidebar-nav-item"
             onClick={() => {
               if (item.label === "Voice Call") startCall();
-              if (item.label === "Examples")   setShowExamples(true);
-              if (item.label === "Language")   { setPendingLang(selectedLanguageCode); setShowLangModal(true); }
+              if (item.label === "Examples") {
+                setShowLangModal(false);
+                setShowHealthGuide(false);
+                setShowExamples(true);
+              }
+              if (item.label === "Language") {
+                setShowExamples(false);
+                setShowHealthGuide(false);
+                setPendingLang(selectedLanguageCode);
+                setShowLangModal(true);
+              }
+              if (item.label === "Health Guide") {
+                setShowExamples(false);
+                setShowLangModal(false);
+                setShowHealthGuide(true);
+              }
             }}
           >
             <span>{item.icon}</span>
@@ -353,7 +372,11 @@ export default function App() {
           <div className="mob-logo-title">Jeevanrekha</div>
           <div className="mob-logo-sub">AI Voice Health Assistant</div>
         </div>
-        <div className="mob-menu-btn" onClick={() => setShowExamples(true)}>☰</div>
+        <div className="mob-menu-btn" onClick={() => {
+          setShowLangModal(false);
+          setShowHealthGuide(false);
+          setShowExamples(true);
+        }}>☰</div>
       </header>
 
       {/* Scrollable Main Content */}
@@ -372,6 +395,41 @@ export default function App() {
 
       <AnimatePresence>
         {showExamples && <ExamplesModal key="examples" />}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showHealthGuide && (
+          <motion.div
+            key="healthguide"
+            className="examples-modal"
+            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+          >
+            <div className="examples-modal-header">
+              <button className="back-btn" onClick={() => setShowHealthGuide(false)}>←</button>
+              <h3>Health Guide</h3>
+            </div>
+            <p className="examples-modal-sub">Quick health tips &amp; what you can ask JeevanRekha</p>
+            <div className="ex-list">
+              {[
+                { icon: "🤕", color: "#FF6B6B", bg: "rgba(255,107,107,0.15)", title: "Fever &amp; Cold", tip: "Rest, drink fluids, and take paracetamol if temperature is above 101°F. Visit a doctor if fever lasts more than 3 days.", prompt: "I have fever and headache" },
+                { icon: "❤️", color: "#FF4F61", bg: "rgba(255,79,97,0.15)", title: "Chest Pain", tip: "Chest pain with sweating or left arm pain is a medical emergency. Call 108 immediately.", prompt: "I have chest pain" },
+                { icon: "🤰", color: "#C084FC", bg: "rgba(192,132,252,0.15)", title: "Pregnancy Care", tip: "Regular antenatal check-ups are essential. Ask about iron supplements and vaccination schedules.", prompt: "I need pregnancy care guidance" },
+                { icon: "👶", color: "#60A5FA", bg: "rgba(96,165,250,0.15)", title: "Child Health", tip: "Ensure all vaccinations are up to date. ORS is the first treatment for diarrhea in children.", prompt: "My child is not eating well" },
+                { icon: "💉", color: "#34D399", bg: "rgba(52,211,153,0.15)", title: "Vaccination", tip: "India's National Immunization Schedule is free at all government health centers.", prompt: "What vaccines does my baby need?" },
+                { icon: "🏥", color: "#F59E0B", bg: "rgba(245,158,11,0.15)", title: "Find Hospitals", tip: "JeevanRekha can find the nearest hospital or clinic using your GPS location.", prompt: "Find nearby hospitals" },
+              ].map((item, i) => (
+                <div key={i} className="ex-card" onClick={() => { setShowHealthGuide(false); startCall(item.prompt); }}>
+                  <div className="ex-icon" style={{ background: item.bg }}>{item.icon}</div>
+                  <div>
+                    <div className="ex-card-title" dangerouslySetInnerHTML={{ __html: item.title }} />
+                    <div className="ex-card-sub" dangerouslySetInnerHTML={{ __html: item.tip }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       <AnimatePresence>
